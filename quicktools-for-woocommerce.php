@@ -2,11 +2,11 @@
 /**
  * Plugin Name: QuickTools for WooCommerce
  * Plugin URI:  https://github.com/hmbashar/QuickTools-for-WooCommerce
- * Description: A set of quick tools for WooCommerce stores to enhance functionality.
+ * Description: QuickTools for WooCommerce is a powerful and user-friendly plugin designed to enhance your WooCommerce store with essential tools for better product management. This plugin provides valuable insights into your product sales by adding a "Total Sold" column to the products table, making it easier for you to monitor performance and inventory at a glance.
  * Version:     1.0.0
  * Author:      Md Abul Bashar
  * Author URI:  https://github.com/hmbashar
- * Text Domain: qtfw
+ * Text Domain: quicktools-for-woocommerce
  * Domain Path: /languages
  * License:     GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
@@ -30,7 +30,7 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
 
     // Load plugin textdomain.
     function qtfw_load_textdomain() {
-        load_plugin_textdomain('qtfw', false, dirname(plugin_basename(__FILE__)) . '/languages');
+        load_plugin_textdomain('quicktools-for-woocommerce', false, dirname(plugin_basename(__FILE__)) . '/languages');
     }
     add_action('init', 'qtfw_load_textdomain');
 
@@ -44,13 +44,17 @@ if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_
     add_action('plugins_loaded', 'qtfw_initialize_plugin');
 
 } else {
-    // Display an admin notice if WooCommerce is not active.
+   
+    /**
+     * Show a notice when WooCommerce is not active.
+     *
+     * @since 1.0.0
+     */
     function qtfw_wc_inactive_notice() {
         echo '<div class="notice notice-error is-dismissible">
-            <p><strong>' . esc_html__('QuickTools for WooCommerce', 'qtfw') . '</strong> ' . esc_html__('requires WooCommerce to be installed and active. Please activate WooCommerce to use this plugin.', 'qtfw') . '</p>
+            <p><strong>' . esc_html__('QuickTools for WooCommerce', 'quicktools-for-woocommerce') . '</strong> ' . esc_html__('requires WooCommerce to be installed and active. Please activate WooCommerce to use this plugin.', 'quicktools-for-woocommerce') . '</p>
         </div>';
     }
     
     add_action('admin_notices', 'qtfw_wc_inactive_notice');
 }
-

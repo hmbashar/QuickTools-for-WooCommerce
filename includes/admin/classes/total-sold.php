@@ -34,7 +34,7 @@ class Total_Sold {
     
             // Insert Sold column after the 'name' (Product Name) column
             if ($key === 'name') {
-                $new_columns['product_sold'] = __('Sold', 'qtfw');
+                $new_columns['product_sold'] = __('Sold', 'quicktools-for-woocommerce');
             }
         }
     

@@ -97,6 +97,9 @@ class Main
     private function load_dependencies() {
         // Require the file that contains the Total_Sold class
         require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/total-sold.php';
+
+        // Require the file that contains the Total_Sold class
+        require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
     }
 
     /**
@@ -107,6 +110,12 @@ class Main
         if (is_admin()) {
             // Initialize Total_Sold feature for admin
             new \QTFW\Includes\Admin\Classes\Total_Sold();
+        }
+
+        // Initialize Total_Sold feature for public
+        if (class_exists('\QTFW\Includes\Classes\Total_Sold')) {
+            // Initialize Total_Sold feature for public
+            new \QTFW\Includes\Classes\Total_Sold();
         }
     }
     
