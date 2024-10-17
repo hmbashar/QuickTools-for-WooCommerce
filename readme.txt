@@ -1,16 +1,19 @@
 === QuickTools for WooCommerce ===
 Contributors: hmbashar
-Tags: total sold, ecommerce, woocommerce
+Tags: total sold, ecommerce, woocommerce addons
 Requires at least: 5.0
 Requires PHP: 7.4
 Tested up to: 6.6.2
-Stable tag: 1.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
+
+QuickTools for WooCommerce adds a "Total Sold" column, offering insights into sales and simplifying inventory management for better store performance
+
 == Description ==
 
-**QuickTools for WooCommerce** is a powerful and user-friendly plugin designed to enhance your WooCommerce store with essential tools for better product management. 
+QuickTools for WooCommerce is a powerful and user-friendly plugin designed to enhance your WooCommerce store with essential tools for better product management. 
 
 This plugin provides valuable insights into your product sales by adding a "Total Sold" column to the products table, making it easier for you to monitor performance and inventory at a glance.
 
