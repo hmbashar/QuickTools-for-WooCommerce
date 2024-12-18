@@ -100,6 +100,8 @@ class Main
 
         // Require the file that contains the Total_Sold class
         require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
+
+        require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/columns/PreviousOrdersColumn.php';
     }
 
     /**
@@ -116,6 +118,12 @@ class Main
         if (class_exists('\QTFW\Includes\Classes\Total_Sold')) {
             // Initialize Total_Sold feature for public
             new \QTFW\Includes\Classes\Total_Sold();
+        }
+
+        // Initialize PreviousOrdersColumn feature for admin
+        if (class_exists('\QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn')) {
+            // Initialize PreviousOrdersColumn feature for admin
+            new \QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn();
         }
     }
     
