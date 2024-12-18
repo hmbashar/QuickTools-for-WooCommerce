@@ -59,6 +59,31 @@ class PreviousOrdersColumn {
      * @return array Counts of orders by status.
      */
     private function get_orders_by_status_counts($phone_number) {
+        try {
+            if ($this->is_hpos_enabled()) {
+                return $this->get_orders_by_status_counts_hpos($phone_number);
+            } else {
+                return $this->get_orders_by_status_counts_legacy($phone_number);
+            }
+        } catch (\Exception $e) {
+            error_log('Error fetching orders: ' . $e->getMessage());
+            return [
+                'total' => 0,
+                'processing' => 0,
+                'on-hold' => 0,
+                'pending' => 0,
+                'cancelled' => 0,
+            ];
+        }
+    }
+
+    /**
+     * Get the count of orders by status for legacy storage.
+     *
+     * @param string $phone_number The billing phone number.
+     * @return array Counts of orders by status.
+     */
+    private function get_orders_by_status_counts_legacy($phone_number) {
         global $wpdb;
 
         $query = $wpdb->prepare(
@@ -103,6 +128,74 @@ class PreviousOrdersColumn {
         }
 
         return $statuses;
+    }
+
+    /**
+     * Get the count of orders by status for HPOS.
+     *
+     * @param string $phone_number The billing phone number.
+     * @return array Counts of orders by status.
+     */
+    private function get_orders_by_status_counts_hpos($phone_number) {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'wc_orders';
+        $query = $wpdb->prepare(
+            "SELECT status, COUNT(*) as count
+             FROM {$table}
+             WHERE billing_phone = %s
+             GROUP BY status",
+            $phone_number
+        );
+
+        $results = $wpdb->get_results($query);
+
+        // Initialize status counts.
+        $statuses = [
+            'total' => 0,
+            'processing' => 0,
+            'on-hold' => 0,
+            'pending' => 0,
+            'cancelled' => 0,
+        ];
+
+        foreach ($results as $row) {
+            $statuses['total'] += $row->count;
+
+            switch ($row->status) {
+                case 'processing':
+                    $statuses['processing'] += $row->count;
+                    break;
+                case 'on-hold':
+                    $statuses['on-hold'] += $row->count;
+                    break;
+                case 'pending':
+                    $statuses['pending'] += $row->count;
+                    break;
+                case 'cancelled':
+                    $statuses['cancelled'] += $row->count;
+                    break;
+            }
+        }
+
+        return $statuses;
+    }
+
+    /**
+     * Check if HPOS is enabled.
+     *
+     * @return bool True if HPOS is enabled, false otherwise.
+     */
+    private function is_hpos_enabled() {
+        try {
+            if (class_exists(\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class)) {
+                $controller = wc_get_container()->get(\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class);
+                return method_exists($controller, 'is_enabled') && $controller->is_enabled();
+            }
+        } catch (\Exception $e) {
+            error_log('Error checking HPOS status: ' . $e->getMessage());
+        }
+        return false;
     }
 
     /**
