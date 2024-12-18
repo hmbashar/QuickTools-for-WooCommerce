@@ -58,11 +58,11 @@ class PreviousOrdersColumn {
      * @param string $phone_number The billing phone number.
      * @return array Counts of orders by status.
      */
-    private function get_orders_by_status_counts($phone_number) {
+    private function get_orders_by_status_counts($phone_number) {     
         try {
-            if ($this->is_hpos_enabled()) {
+            if ($this->is_hpos_enabled()) {  
                 return $this->get_orders_by_status_counts_hpos($phone_number);
-            } else {
+            } else {               
                 return $this->get_orders_by_status_counts_legacy($phone_number);
             }
         } catch (\Exception $e) {
@@ -138,19 +138,28 @@ class PreviousOrdersColumn {
      */
     private function get_orders_by_status_counts_hpos($phone_number) {
         global $wpdb;
-
-        $table = $wpdb->prefix . 'wc_orders';
+    
+        $orders_table = $wpdb->prefix . 'wc_orders';
+        $postmeta_table = $wpdb->prefix . 'postmeta';
+    
+        // Query to fetch orders with matching phone numbers
         $query = $wpdb->prepare(
-            "SELECT status, COUNT(*) as count
-             FROM {$table}
-             WHERE billing_phone = %s
-             GROUP BY status",
+            "SELECT o.status, COUNT(*) as count
+             FROM {$orders_table} o
+             INNER JOIN {$postmeta_table} pm ON o.id = pm.post_id
+             WHERE pm.meta_key = '_billing_phone'
+             AND pm.meta_value = %s
+             GROUP BY o.status",
             $phone_number
         );
-
+    
         $results = $wpdb->get_results($query);
-
-        // Initialize status counts.
+    
+        // Debugging: Log the query and results
+        error_log('HPOS Query: ' . $wpdb->last_query);
+        error_log('HPOS Results: ' . print_r($results, true));
+    
+        // Initialize status counts
         $statuses = [
             'total' => 0,
             'processing' => 0,
@@ -158,28 +167,35 @@ class PreviousOrdersColumn {
             'pending' => 0,
             'cancelled' => 0,
         ];
-
-        foreach ($results as $row) {
-            $statuses['total'] += $row->count;
-
-            switch ($row->status) {
-                case 'processing':
-                    $statuses['processing'] += $row->count;
-                    break;
-                case 'on-hold':
-                    $statuses['on-hold'] += $row->count;
-                    break;
-                case 'pending':
-                    $statuses['pending'] += $row->count;
-                    break;
-                case 'cancelled':
-                    $statuses['cancelled'] += $row->count;
-                    break;
+    
+        if (!empty($results)) {
+            foreach ($results as $row) {
+                $statuses['total'] += $row->count;
+    
+                switch ($row->status) {
+                    case 'processing':
+                        $statuses['processing'] += $row->count;
+                        break;
+                    case 'on-hold':
+                        $statuses['on-hold'] += $row->count;
+                        break;
+                    case 'pending':
+                        $statuses['pending'] += $row->count;
+                        break;
+                    case 'cancelled':
+                        $statuses['cancelled'] += $row->count;
+                        break;
+                }
             }
+        } else {
+            error_log('No results found for phone number: ' . $phone_number);
         }
-
+    
         return $statuses;
     }
+    
+    
+    
 
     /**
      * Check if HPOS is enabled.
