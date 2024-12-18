@@ -7,6 +7,7 @@ class PreviousOrdersColumn {
     public function __construct() {
         add_filter('manage_edit-shop_order_columns', [$this, 'add_previous_orders_column']);
         add_action('manage_shop_order_posts_custom_column', [$this, 'render_previous_orders_column'], 10, 2);
+        add_action('admin_head', [$this, 'add_tooltip_styles']);
     }
 
     /**
@@ -43,26 +44,16 @@ class PreviousOrdersColumn {
             if ($billing_phone) {
                 $order_counts = $this->get_orders_by_status_counts($billing_phone);
 
-                if ($order_counts) {
-                    echo sprintf(
-                        'Total: %d, Processing: %d, Hold: %d, Pending: %d, Cancelled: %d',
-                        $order_counts['total'],
-                        $order_counts['processing'],
-                        $order_counts['on-hold'],
-                        $order_counts['pending'],
-                        $order_counts['cancelled']
-                    );
-                } else {
-                    echo __('No Orders', 'quicktools-for-woocommerce');
-                }
+                // Render small circles with tooltips.
+                $this->render_tooltip_circles($order_counts);
             } else {
-                echo __('No Phone', 'quicktools-for-woocommerce');
+                echo __('No Phone Number', 'quicktools-for-woocommerce');
             }
         }
     }
 
     /**
-     * Get the count of orders by status for a specific phone number, including the current order.
+     * Get the count of orders by status for a specific phone number.
      *
      * @param string $phone_number The billing phone number.
      * @return array Counts of orders by status.
@@ -108,12 +99,78 @@ class PreviousOrdersColumn {
                 case 'wc-cancelled':
                     $statuses['cancelled'] += $row->count;
                     break;
-                default:
-                    // Handle additional custom statuses here if needed.
-                    break;
             }
         }
 
         return $statuses;
+    }
+
+    /**
+     * Render small circles with tooltips.
+     *
+     * @param array $counts Counts of orders by status.
+     */
+    private function render_tooltip_circles($counts) {
+        $statuses = [
+            'Total' => ['count' => $counts['total'], 'color' => '#aaa'],
+            'Processing' => ['count' => $counts['processing'], 'color' => '#28a745'],
+            'On Hold' => ['count' => $counts['on-hold'], 'color' => '#17a2b8'],
+            'Pending' => ['count' => $counts['pending'], 'color' => '#ffc107'],
+            'Cancelled' => ['count' => $counts['cancelled'], 'color' => '#dc3545'],
+        ];
+
+        foreach ($statuses as $label => $status) {
+            echo '<div class="tooltip-circle" style="background-color:' . esc_attr($status['color']) . ';"
+                 data-tooltip="' . esc_attr($label . ': ' . $status['count']) . '">
+                 ' . esc_html($status['count']) . '
+                 </div>';
+        }
+    }
+
+    /**
+     * Add CSS styles for tooltips.
+     */
+    public function add_tooltip_styles() {
+        ?>
+        <style>
+            .tooltip-circle {
+                display: inline-block;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                color: #fff;
+                text-align: center;
+                line-height: 25px;
+                font-size: 12px;
+                margin-right: 5px;
+                position: relative;
+                cursor: pointer;
+            }
+            .tooltip-circle:hover::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                bottom: 150%;
+                left: 50%;
+                transform: translateX(-50%);
+                white-space: nowrap;
+                background-color: #000;
+                color: #fff;
+                padding: 5px 8px;
+                border-radius: 4px;
+                font-size: 11px;
+                z-index: 1000;
+            }
+            .tooltip-circle:hover::before {
+                content: '';
+                position: absolute;
+                bottom: 120%;
+                left: 50%;
+                transform: translateX(-50%);
+                border: 5px solid transparent;
+                border-top-color: #000;
+                z-index: 1000;
+            }
+        </style>
+        <?php
     }
 }
