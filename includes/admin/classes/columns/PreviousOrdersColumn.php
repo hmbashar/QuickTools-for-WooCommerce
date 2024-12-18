@@ -22,7 +22,7 @@ class PreviousOrdersColumn {
             $new_columns[$key] = $title;
             // Add the new column after the "Order Total" column.
             if ('order_total' === $key) {
-                $new_columns['previous_orders'] = __('Previous Orders', 'qtfw');
+                $new_columns['previous_orders'] = __('Previous Orders', 'quicktools-for-woocommerce');
             }
         }
 
@@ -38,14 +38,82 @@ class PreviousOrdersColumn {
     public function render_previous_orders_column($column, $post_id) {
         if ('previous_orders' === $column) {
             $order = wc_get_order($post_id);
-            $customer_id = $order->get_customer_id();
+            $billing_phone = $order->get_billing_phone();
 
-            if ($customer_id) {
-                $order_count = wc_get_customer_order_count($customer_id) - 1; // Exclude the current order.
-                echo $order_count > 0 ? esc_html($order_count) : __('None', 'qtfw');
+            if ($billing_phone) {
+                $order_counts = $this->get_orders_by_status_counts($billing_phone);
+
+                if ($order_counts) {
+                    echo sprintf(
+                        'Total: %d, Processing: %d, Hold: %d, Pending: %d, Cancelled: %d',
+                        $order_counts['total'],
+                        $order_counts['processing'],
+                        $order_counts['on-hold'],
+                        $order_counts['pending'],
+                        $order_counts['cancelled']
+                    );
+                } else {
+                    echo __('No Orders', 'quicktools-for-woocommerce');
+                }
             } else {
-                echo __('Guest', 'qtfw');
+                echo __('No Phone', 'quicktools-for-woocommerce');
             }
         }
+    }
+
+    /**
+     * Get the count of orders by status for a specific phone number, including the current order.
+     *
+     * @param string $phone_number The billing phone number.
+     * @return array Counts of orders by status.
+     */
+    private function get_orders_by_status_counts($phone_number) {
+        global $wpdb;
+
+        $query = $wpdb->prepare(
+            "SELECT p.post_status, COUNT(*) as count
+             FROM {$wpdb->prefix}postmeta pm
+             INNER JOIN {$wpdb->prefix}posts p ON pm.post_id = p.ID
+             WHERE pm.meta_key = '_billing_phone'
+             AND pm.meta_value = %s
+             AND p.post_type = 'shop_order'
+             GROUP BY p.post_status",
+            $phone_number
+        );
+
+        $results = $wpdb->get_results($query);
+
+        // Initialize status counts.
+        $statuses = [
+            'total' => 0,
+            'processing' => 0,
+            'on-hold' => 0,
+            'pending' => 0,
+            'cancelled' => 0,
+        ];
+
+        foreach ($results as $row) {
+            $statuses['total'] += $row->count;
+
+            switch ($row->post_status) {
+                case 'wc-processing':
+                    $statuses['processing'] += $row->count;
+                    break;
+                case 'wc-on-hold':
+                    $statuses['on-hold'] += $row->count;
+                    break;
+                case 'wc-pending':
+                    $statuses['pending'] += $row->count;
+                    break;
+                case 'wc-cancelled':
+                    $statuses['cancelled'] += $row->count;
+                    break;
+                default:
+                    // Handle additional custom statuses here if needed.
+                    break;
+            }
+        }
+
+        return $statuses;
     }
 }
