@@ -1,285 +1,353 @@
 <?php
+/**
+ * Previous Orders column for the WooCommerce orders list.
+ *
+ * @package QuickToolsForWooCommerce
+ * @since   1.0.0
+ */
 
 namespace QTFW\Includes\Admin\Classes\Columns;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Adds a Previous Orders column keyed by billing phone.
+ */
 class PreviousOrdersColumn {
 
-    public function __construct() {
-        add_filter('manage_edit-shop_order_columns', [$this, 'add_previous_orders_column']);
-        add_action('manage_shop_order_posts_custom_column', [$this, 'render_previous_orders_column'], 10, 2);
-        add_action('admin_head', [$this, 'add_tooltip_styles']);
-    }
+	/**
+	 * Request-level cache of phone => status counts.
+	 *
+	 * @var array<string, array<string, int>>
+	 */
+	private static $counts_cache = array();
 
-    /**
-     * Add a new column to the WooCommerce Orders list.
-     *
-     * @param array $columns The existing columns.
-     * @return array Modified columns.
-     */
-    public function add_previous_orders_column($columns) {
-        $new_columns = [];
-        
-        foreach ($columns as $key => $title) {
-            $new_columns[$key] = $title;
-            // Add the new column after the "Order Total" column.
-            if ('order_total' === $key) {
-                $new_columns['previous_orders'] = __('Previous Orders', 'quicktools-for-woocommerce');
-            }
-        }
+	/**
+	 * Status keys shown in the column UI.
+	 *
+	 * @var string[]
+	 */
+	private static $tracked_statuses = array(
+		'processing',
+		'on-hold',
+		'pending',
+		'cancelled',
+	);
 
-        return $new_columns;
-    }
+	/**
+	 * Register list-table hooks for legacy CPT and HPOS screens.
+	 */
+	public function __construct() {
+		// Legacy shop_order CPT list.
+		add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_previous_orders_column' ) );
+		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'render_previous_orders_column_legacy' ), 10, 2 );
 
-    /**
-     * Render the data for the new column.
-     *
-     * @param string $column The column being rendered.
-     * @param int $post_id The order ID.
-     */
-    public function render_previous_orders_column($column, $post_id) {
-        if ('previous_orders' === $column) {
-            $order = wc_get_order($post_id);
-            $billing_phone = $order->get_billing_phone();
+		// HPOS orders list (WooCommerce 7.3+).
+		add_filter( 'manage_woocommerce_page_wc-orders_columns', array( $this, 'add_previous_orders_column' ) );
+		add_action( 'manage_woocommerce_page_wc-orders_custom_column', array( $this, 'render_previous_orders_column_hpos' ), 10, 2 );
+	}
 
-            if ($billing_phone) {
-                $order_counts = $this->get_orders_by_status_counts($billing_phone);
+	/**
+	 * Add the Previous Orders column after Order Total.
+	 *
+	 * @param array $columns Existing columns.
+	 * @return array
+	 */
+	public function add_previous_orders_column( $columns ) {
+		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+			return $columns;
+		}
 
-                // Render small circles with tooltips.
-                $this->render_tooltip_circles($order_counts);
-            } else {
-                echo __('No Phone Number', 'quicktools-for-woocommerce');
-            }
-        }
-    }
+		$new_columns = array();
 
-    /**
-     * Get the count of orders by status for a specific phone number.
-     *
-     * @param string $phone_number The billing phone number.
-     * @return array Counts of orders by status.
-     */
-    private function get_orders_by_status_counts($phone_number) {     
-        try {
-            if ($this->is_hpos_enabled()) {  
-                return $this->get_orders_by_status_counts_hpos($phone_number);
-            } else {               
-                return $this->get_orders_by_status_counts_legacy($phone_number);
-            }
-        } catch (\Exception $e) {
-            error_log('Error fetching orders: ' . $e->getMessage());
-            return [
-                'total' => 0,
-                'processing' => 0,
-                'on-hold' => 0,
-                'pending' => 0,
-                'cancelled' => 0,
-            ];
-        }
-    }
+		foreach ( $columns as $key => $title ) {
+			$new_columns[ $key ] = $title;
 
-    /**
-     * Get the count of orders by status for legacy storage.
-     *
-     * @param string $phone_number The billing phone number.
-     * @return array Counts of orders by status.
-     */
-    private function get_orders_by_status_counts_legacy($phone_number) {
-        global $wpdb;
+			if ( 'order_total' === $key ) {
+				$new_columns['previous_orders'] = __( 'Previous Orders', 'quicktools-for-woocommerce' );
+			}
+		}
 
-        $query = $wpdb->prepare(
-            "SELECT p.post_status, COUNT(*) as count
-             FROM {$wpdb->prefix}postmeta pm
-             INNER JOIN {$wpdb->prefix}posts p ON pm.post_id = p.ID
-             WHERE pm.meta_key = '_billing_phone'
-             AND pm.meta_value = %s
-             AND p.post_type = 'shop_order'
-             GROUP BY p.post_status",
-            $phone_number
-        );
+		return $new_columns;
+	}
 
-        $results = $wpdb->get_results($query);
+	/**
+	 * Render column for the legacy orders list (post ID).
+	 *
+	 * @param string $column  Column key.
+	 * @param int    $post_id Order post ID.
+	 */
+	public function render_previous_orders_column_legacy( $column, $post_id ) {
+		if ( 'previous_orders' !== $column ) {
+			return;
+		}
 
-        // Initialize status counts.
-        $statuses = [
-            'total' => 0,
-            'processing' => 0,
-            'on-hold' => 0,
-            'pending' => 0,
-            'cancelled' => 0,
-        ];
+		$this->render_previous_orders_for_order( wc_get_order( $post_id ) );
+	}
 
-        foreach ($results as $row) {
-            $statuses['total'] += $row->count;
+	/**
+	 * Render column for the HPOS orders list (order object or ID).
+	 *
+	 * @param string         $column Column key.
+	 * @param \WC_Order|int  $order  Order object or ID.
+	 */
+	public function render_previous_orders_column_hpos( $column, $order ) {
+		if ( 'previous_orders' !== $column ) {
+			return;
+		}
 
-            switch ($row->post_status) {
-                case 'wc-processing':
-                    $statuses['processing'] += $row->count;
-                    break;
-                case 'wc-on-hold':
-                    $statuses['on-hold'] += $row->count;
-                    break;
-                case 'wc-pending':
-                    $statuses['pending'] += $row->count;
-                    break;
-                case 'wc-cancelled':
-                    $statuses['cancelled'] += $row->count;
-                    break;
-            }
-        }
+		if ( ! $order instanceof \WC_Order ) {
+			$order = wc_get_order( $order );
+		}
 
-        return $statuses;
-    }
+		$this->render_previous_orders_for_order( $order );
+	}
 
-    /**
-     * Get the count of orders by status for HPOS.
-     *
-     * @param string $phone_number The billing phone number.
-     * @return array Counts of orders by status.
-     */
-    private function get_orders_by_status_counts_hpos($phone_number) {
-        global $wpdb;
-    
-        $orders_table = $wpdb->prefix . 'wc_orders';
-        $postmeta_table = $wpdb->prefix . 'postmeta';
-    
-        // Query to fetch orders with matching phone numbers
-        $query = $wpdb->prepare(
-            "SELECT o.status, COUNT(*) as count
-             FROM {$orders_table} o
-             INNER JOIN {$postmeta_table} pm ON o.id = pm.post_id
-             WHERE pm.meta_key = '_billing_phone'
-             AND pm.meta_value = %s
-             GROUP BY o.status",
-            $phone_number
-        );
-    
-        $results = $wpdb->get_results($query);
-    
-        // Debugging: Log the query and results
-        error_log('HPOS Query: ' . $wpdb->last_query);
-        error_log('HPOS Results: ' . print_r($results, true));
-    
-        // Initialize status counts
-        $statuses = [
-            'total' => 0,
-            'processing' => 0,
-            'on-hold' => 0,
-            'pending' => 0,
-            'cancelled' => 0,
-        ];
-    
-        if (!empty($results)) {
-            foreach ($results as $row) {
-                $statuses['total'] += $row->count;
-    
-                switch ($row->status) {
-                    case 'processing':
-                        $statuses['processing'] += $row->count;
-                        break;
-                    case 'on-hold':
-                        $statuses['on-hold'] += $row->count;
-                        break;
-                    case 'pending':
-                        $statuses['pending'] += $row->count;
-                        break;
-                    case 'cancelled':
-                        $statuses['cancelled'] += $row->count;
-                        break;
-                }
-            }
-        } else {
-            error_log('No results found for phone number: ' . $phone_number);
-        }
-    
-        return $statuses;
-    }
-    
-    
-    
+	/**
+	 * Output previous-order status badges for a single order row.
+	 *
+	 * @param \WC_Order|false|null $order Order instance.
+	 */
+	private function render_previous_orders_for_order( $order ) {
+		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+			return;
+		}
 
-    /**
-     * Check if HPOS is enabled.
-     *
-     * @return bool True if HPOS is enabled, false otherwise.
-     */
-    private function is_hpos_enabled() {
-        try {
-            if (class_exists(\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class)) {
-                $controller = wc_get_container()->get(\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class);
-                return method_exists($controller, 'is_enabled') && $controller->is_enabled();
-            }
-        } catch (\Exception $e) {
-            error_log('Error checking HPOS status: ' . $e->getMessage());
-        }
-        return false;
-    }
+		if ( ! $order instanceof \WC_Order ) {
+			echo '&mdash;';
+			return;
+		}
 
-    /**
-     * Render small circles with tooltips.
-     *
-     * @param array $counts Counts of orders by status.
-     */
-    private function render_tooltip_circles($counts) {
-        $statuses = [
-            'Total' => ['count' => $counts['total'], 'color' => '#aaa'],
-            'Processing' => ['count' => $counts['processing'], 'color' => '#28a745'],
-            'On Hold' => ['count' => $counts['on-hold'], 'color' => '#17a2b8'],
-            'Pending' => ['count' => $counts['pending'], 'color' => '#ffc107'],
-            'Cancelled' => ['count' => $counts['cancelled'], 'color' => '#dc3545'],
-        ];
+		$billing_phone = $this->normalize_phone( $order->get_billing_phone() );
 
-        foreach ($statuses as $label => $status) {
-            echo '<div class="tooltip-circle" style="background-color:' . esc_attr($status['color']) . ';"
-                 data-tooltip="' . esc_attr($label . ': ' . $status['count']) . '">
-                 ' . esc_html($status['count']) . '
-                 </div>';
-        }
-    }
+		if ( '' === $billing_phone ) {
+			echo esc_html__( 'No Phone Number', 'quicktools-for-woocommerce' );
+			return;
+		}
 
-    /**
-     * Add CSS styles for tooltips.
-     */
-    public function add_tooltip_styles() {
-        ?>
-        <style>
-            .tooltip-circle {
-                display: inline-block;
-                width: 25px;
-                height: 25px;
-                border-radius: 50%;
-                color: #fff;
-                text-align: center;
-                line-height: 25px;
-                font-size: 12px;
-                margin-right: 5px;
-                position: relative;
-                cursor: pointer;
-            }
-            .tooltip-circle:hover::after {
-                content: attr(data-tooltip);
-                position: absolute;
-                bottom: 150%;
-                left: 50%;
-                transform: translateX(-50%);
-                white-space: nowrap;
-                background-color: #000;
-                color: #fff;
-                padding: 5px 8px;
-                border-radius: 4px;
-                font-size: 11px;
-                z-index: 1000;
-            }
-            .tooltip-circle:hover::before {
-                content: '';
-                position: absolute;
-                bottom: 120%;
-                left: 50%;
-                transform: translateX(-50%);
-                border: 5px solid transparent;
-                border-top-color: #000;
-                z-index: 1000;
-            }
-        </style>
-        <?php
-    }
+		$order_counts = $this->get_orders_by_status_counts( $billing_phone, (int) $order->get_id() );
+		$this->render_tooltip_circles( $order_counts );
+	}
+
+	/**
+	 * Normalize a billing phone for lookup/caching.
+	 *
+	 * @param string $phone Raw phone.
+	 * @return string
+	 */
+	private function normalize_phone( $phone ) {
+		if ( ! is_string( $phone ) ) {
+			return '';
+		}
+
+		// Keep formatting as stored so SQL exact-match still works.
+		return trim( sanitize_text_field( wp_unslash( $phone ) ) );
+	}
+
+	/**
+	 * Get order counts by status for a phone, excluding the current order.
+	 *
+	 * @param string $phone_number     Normalized billing phone.
+	 * @param int    $exclude_order_id Current order ID to exclude.
+	 * @return array<string, int>
+	 */
+	private function get_orders_by_status_counts( $phone_number, $exclude_order_id = 0 ) {
+		$cache_key = md5( $phone_number . '|' . (int) $exclude_order_id );
+
+		if ( isset( self::$counts_cache[ $cache_key ] ) ) {
+			return self::$counts_cache[ $cache_key ];
+		}
+
+		$empty = $this->empty_status_counts();
+
+		try {
+			if ( $this->is_hpos_enabled() ) {
+				$counts = $this->get_orders_by_status_counts_hpos( $phone_number, $exclude_order_id );
+			} else {
+				$counts = $this->get_orders_by_status_counts_legacy( $phone_number, $exclude_order_id );
+			}
+		} catch ( \Exception $e ) {
+			$counts = $empty;
+		}
+
+		self::$counts_cache[ $cache_key ] = $counts;
+
+		return $counts;
+	}
+
+	/**
+	 * Default zeroed status counts.
+	 *
+	 * @return array<string, int>
+	 */
+	private function empty_status_counts() {
+		$counts = array( 'total' => 0 );
+
+		foreach ( self::$tracked_statuses as $status ) {
+			$counts[ $status ] = 0;
+		}
+
+		return $counts;
+	}
+
+	/**
+	 * Map SQL status rows into the UI count array.
+	 *
+	 * @param array<int, object> $results DB rows with status + count.
+	 * @return array<string, int>
+	 */
+	private function map_status_results( $results ) {
+		$statuses = $this->empty_status_counts();
+
+		foreach ( (array) $results as $row ) {
+			if ( ! isset( $row->status, $row->count ) ) {
+				continue;
+			}
+
+			$count  = (int) $row->count;
+			$status = (string) $row->status;
+
+			if ( 0 === strpos( $status, 'wc-' ) ) {
+				$status = substr( $status, 3 );
+			}
+
+			$statuses['total'] += $count;
+
+			if ( isset( $statuses[ $status ] ) && 'total' !== $status ) {
+				$statuses[ $status ] += $count;
+			}
+		}
+
+		return $statuses;
+	}
+
+	/**
+	 * Count orders by status (legacy CPT storage).
+	 *
+	 * @param string $phone_number     Billing phone.
+	 * @param int    $exclude_order_id Order ID to exclude.
+	 * @return array<string, int>
+	 */
+	private function get_orders_by_status_counts_legacy( $phone_number, $exclude_order_id = 0 ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin list aggregate; request-cached above.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT p.post_status AS status, COUNT(*) AS count
+				 FROM {$wpdb->posts} p
+				 INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+				 WHERE pm.meta_key = '_billing_phone'
+				 AND pm.meta_value = %s
+				 AND p.post_type = 'shop_order'
+				 AND p.ID != %d
+				 GROUP BY p.post_status",
+				$phone_number,
+				(int) $exclude_order_id
+			)
+		);
+
+		return $this->map_status_results( $results );
+	}
+
+	/**
+	 * Count orders by status (HPOS / custom order tables).
+	 *
+	 * Reads billing phone from wc_order_addresses, not postmeta.
+	 *
+	 * @param string $phone_number     Billing phone.
+	 * @param int    $exclude_order_id Order ID to exclude.
+	 * @return array<string, int>
+	 */
+	private function get_orders_by_status_counts_hpos( $phone_number, $exclude_order_id = 0 ) {
+		global $wpdb;
+
+		$orders_table    = $wpdb->prefix . 'wc_orders';
+		$addresses_table = $wpdb->prefix . 'wc_order_addresses';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin list aggregate; request-cached above.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT o.status AS status, COUNT(*) AS count
+				 FROM {$orders_table} o
+				 INNER JOIN {$addresses_table} a ON a.order_id = o.id
+				 WHERE a.address_type = 'billing'
+				 AND a.phone = %s
+				 AND o.type = 'shop_order'
+				 AND o.id != %d
+				 GROUP BY o.status",
+				$phone_number,
+				(int) $exclude_order_id
+			)
+		);
+
+		return $this->map_status_results( $results );
+	}
+
+	/**
+	 * Whether custom order tables (HPOS) are in use.
+	 *
+	 * @return bool
+	 */
+	private function is_hpos_enabled() {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' )
+			&& method_exists( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' )
+		) {
+			return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+		}
+
+		return false;
+	}
+
+	/**
+	 * Render status count badges with accessible tooltips.
+	 *
+	 * @param array<string, int> $counts Status counts.
+	 */
+	private function render_tooltip_circles( $counts ) {
+		$statuses = array(
+			'Total'      => array(
+				'count' => (int) ( $counts['total'] ?? 0 ),
+				'color' => '#aaa',
+			),
+			'Processing' => array(
+				'count' => (int) ( $counts['processing'] ?? 0 ),
+				'color' => '#28a745',
+			),
+			'On Hold'    => array(
+				'count' => (int) ( $counts['on-hold'] ?? 0 ),
+				'color' => '#17a2b8',
+			),
+			'Pending'    => array(
+				'count' => (int) ( $counts['pending'] ?? 0 ),
+				'color' => '#ffc107',
+			),
+			'Cancelled'  => array(
+				'count' => (int) ( $counts['cancelled'] ?? 0 ),
+				'color' => '#dc3545',
+			),
+		);
+
+		echo '<div class="qtfw-previous-orders">';
+
+		foreach ( $statuses as $label => $status ) {
+			$tooltip = sprintf(
+				/* translators: 1: order status label, 2: count */
+				__( '%1$s: %2$d', 'quicktools-for-woocommerce' ),
+				$label,
+				$status['count']
+			);
+
+			printf(
+				'<span class="qtfw-tooltip-circle" style="background-color:%1$s;" title="%2$s" aria-label="%2$s">%3$s</span>',
+				esc_attr( $status['color'] ),
+				esc_attr( $tooltip ),
+				esc_html( (string) $status['count'] )
+			);
+		}
+
+		echo '</div>';
+	}
 }

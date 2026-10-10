@@ -1,6 +1,6 @@
 === QuickTools for WooCommerce ===
 Contributors: hmbashar
-Tags: total sold, ecommerce, woocommerce addons
+Tags: total sold, ecommerce, woocommerce, orders, product sales
 Requires at least: 5.0
 Requires PHP: 7.4
 Tested up to: 6.6.2
@@ -8,21 +8,21 @@ Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-
-QuickTools for WooCommerce adds a "Total Sold" column, offering insights into sales and simplifying inventory management for better store performance
+QuickTools for WooCommerce adds sales insights on products and previous-order badges on the orders list for faster store management.
 
 == Description ==
 
-QuickTools for WooCommerce is a powerful and user-friendly plugin designed to enhance your WooCommerce store with essential tools for better product management. 
-
-This plugin provides valuable insights into your product sales by adding a "Total Sold" column to the products table, making it easier for you to monitor performance and inventory at a glance.
+QuickTools for WooCommerce enhances your WooCommerce admin and storefront with lightweight sales tools. No settings page is required — activate the plugin and the features are available immediately.
 
 == Key Features ==
-- **Total Sold Column:** Displays the total number of units sold for each product in both the product table and on the single product page.
-- **Sortable Columns:** Allows sorting by the total sold units, helping you quickly identify your best-selling products.
-- **Easy Integration:** Seamlessly integrates into your existing WooCommerce setup with minimal configuration required.
+
+* **Sold column (Products):** Sortable units-sold column on the Products list for all product types.
+* **Total Sold (Storefront):** Shows total units sold in shop/archive loops and on single product pages.
+* **Previous Orders column (Orders):** On each order, shows prior order counts for the same billing phone — Total, Processing, On Hold, Pending, and Cancelled. Works with classic orders and HPOS.
+* **Lightweight:** No JavaScript; CSS loads only on relevant product/order screens.
 
 == Installation ==
+
 1. Upload the `quicktools-for-woocommerce` directory to the `/wp-content/plugins/` directory.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
 3. Ensure that WooCommerce is installed and activated to use this plugin.
@@ -30,18 +30,24 @@ This plugin provides valuable insights into your product sales by adding a "Tota
 == Frequently Asked Questions ==
 
 = What is the purpose of this plugin? =
-QuickTools for WooCommerce provides additional product management features, including tracking the total number of units sold for each product.
+It adds product sales visibility (admin + storefront) and previous-order status badges on the orders list, matched by billing phone.
 
-= Is WooCommerce required to use this plugin? =
-Yes, QuickTools for WooCommerce requires WooCommerce to be installed and activated.
+= Is WooCommerce required? =
+Yes. QuickTools for WooCommerce requires WooCommerce to be installed and activated.
+
+= Does it support High-Performance Order Storage (HPOS)? =
+Yes. The Previous Orders column registers on both the classic and HPOS orders screens and reads billing phone from HPOS address tables when enabled.
 
 = How can I report a bug or request a feature? =
-You can report issues or request features on the plugin's [GitHub repository](https://github.com/hmbashar/QuickTools-for-WooCommerce).
+Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/QuickTools-for-WooCommerce).
 
 == Changelog ==
 
 = 1.0.0 =
 * Initial release.
+* Total Sold on products list, shop loop, and single product.
+* Previous Orders column (billing phone) with legacy + HPOS support.
+* Security and performance hardening: capability checks, escaped output, request-level query cache, conditional asset loading.
 
 == Upgrade Notice ==
 

@@ -1,3 +1,23 @@
 th#product_sold {
-    width: 6%;
+	width: 6%;
+}
+
+.qtfw-previous-orders {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	align-items: center;
+}
+
+.qtfw-tooltip-circle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 25px;
+	height: 25px;
+	border-radius: 50%;
+	color: #fff;
+	font-size: 12px;
+	line-height: 1;
+	cursor: default;
 }

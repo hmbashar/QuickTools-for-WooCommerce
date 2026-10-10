@@ -1,131 +1,127 @@
 <?php
+/**
+ * Main plugin bootstrap class.
+ *
+ * @package QuickToolsForWooCommerce
+ * @since   1.0.0
+ */
+
 namespace QTFW\Includes;
 
-/**
- * Don't call the file directly
- *
- * @since 1.0.0
- */
-if (!defined('ABSPATH')) {
-    exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
+/**
+ * Loads features and enqueues assets.
+ */
+class Main {
 
+	/**
+	 * Singleton instance.
+	 *
+	 * @var Main|null
+	 */
+	private static $instance = null;
 
-class Main
-{
+	/**
+	 * Get the singleton instance.
+	 *
+	 * @return Main
+	 */
+	public static function get_instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
 
-    /**
-     * The singleton instance of the class.
-     *
-     * @since 1.0.0
-     *
-     * @var Main The singleton instance.
-     */
-    private static $instance = null;
+		return self::$instance;
+	}
 
-    
-    /**
-     * Gets the singleton instance of the class.
-     *
-     * @since 1.0.0
-     *
-     * @return Main The singleton instance.
-     */
-    public static function get_instance()
-    {
-        if (null === self::$instance) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
+	/**
+	 * Constructor.
+	 */
+	private function __construct() {
+		$this->load_dependencies();
+		$this->define_hooks();
+		$this->initialize_features();
+	}
 
-   
-    /**
-     * Constructor for the Main class.
-     *
-     * This private constructor initializes the plugin by loading
-     * required dependencies, defining necessary hooks, and initializing
-     * admin features. It ensures that these operations are performed
-     * when the singleton instance of the class is created.
-     *
-     * @since 1.0.0
-     */
-    private function __construct()
-    {
-        $this->load_dependencies(); // Load all required files
-        $this->define_hooks();
-        $this->initialize_admin_features();
+	/**
+	 * Register asset hooks.
+	 */
+	private function define_hooks() {
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_public_assets' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+	}
 
-    }
+	/**
+	 * Enqueue frontend CSS only on WooCommerce product views.
+	 */
+	public function enqueue_public_assets() {
+		if ( ! function_exists( 'is_woocommerce' ) ) {
+			return;
+		}
 
-    /**
-     * Defines the hooks for the plugin.
-     */
-    private function define_hooks()
-    {
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_public_assets']);
-        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
-    }
+		if ( ! is_woocommerce() && ! is_product() && ! is_shop() && ! is_product_taxonomy() ) {
+			return;
+		}
 
+		wp_enqueue_style(
+			'qtfw-main',
+			QTFW_PLUGIN_URL . 'assets/css/style.css',
+			array(),
+			QTFW_VERSION
+		);
+	}
 
-    /**
-     * Enqueues public assets for the plugin.
-     *
-     * @since 1.0.0
-     */
-    public function enqueue_public_assets()
-    {
-        wp_enqueue_style('qtfw-main', QTFW_PLUGIN_URL . 'assets/css/style.css', [], QTFW_VERSION);
-    }
+	/**
+	 * Enqueue admin CSS only on product and order list screens.
+	 *
+	 * @param string $hook_suffix Current admin page hook.
+	 */
+	public function enqueue_admin_assets( $hook_suffix ) {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
-    /**
-     * Enqueues admin assets for the plugin.
-     *
-     * @since 1.0.0
-     */
-    public function enqueue_admin_assets()
-    {
-        wp_enqueue_style('qtfw-admin', QTFW_PLUGIN_URL . 'assets/css/admin-style.css', [], QTFW_VERSION);
-    }
-   
-    /**
-     * Loads all required files for the plugin to work correctly.
-     *
-     * @since 1.0.0
-     */
-    private function load_dependencies() {
-        // Require the file that contains the Total_Sold class
-        require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/total-sold.php';
+		if ( ! $screen ) {
+			return;
+		}
 
-        // Require the file that contains the Total_Sold class
-        require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
+		$allowed_screens = array(
+			'edit-product',
+			'edit-shop_order',
+			'woocommerce_page_wc-orders',
+		);
 
-        require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/columns/PreviousOrdersColumn.php';
-    }
+		if ( ! in_array( $screen->id, $allowed_screens, true ) ) {
+			return;
+		}
 
-    /**
-     * Initializes features that are only available in the WordPress admin.
-     * Currently this only includes the Total_Sold feature.
-     */
-    private function initialize_admin_features() {
-        if (is_admin()) {
-            // Initialize Total_Sold feature for admin
-            new \QTFW\Includes\Admin\Classes\Total_Sold();
-        }
+		wp_enqueue_style(
+			'qtfw-admin',
+			QTFW_PLUGIN_URL . 'assets/css/admin-style.css',
+			array(),
+			QTFW_VERSION
+		);
+	}
 
-        // Initialize Total_Sold feature for public
-        if (class_exists('\QTFW\Includes\Classes\Total_Sold')) {
-            // Initialize Total_Sold feature for public
-            new \QTFW\Includes\Classes\Total_Sold();
-        }
+	/**
+	 * Load feature class files.
+	 */
+	private function load_dependencies() {
+		require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/total-sold.php';
+		require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
+		require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/columns/PreviousOrdersColumn.php';
+	}
 
-        // Initialize PreviousOrdersColumn feature for admin
-        if (class_exists('\QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn')) {
-            // Initialize PreviousOrdersColumn feature for admin
-            new \QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn();
-        }
-    }
-    
+	/**
+	 * Instantiate feature classes.
+	 */
+	private function initialize_features() {
+		if ( is_admin() ) {
+			new \QTFW\Includes\Admin\Classes\Total_Sold();
+			new \QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn();
+		}
 
+		new \QTFW\Includes\Classes\Total_Sold();
+	}
 }
