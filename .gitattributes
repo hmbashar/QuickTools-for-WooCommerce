@@ -42,3 +42,4 @@ node_modules/           export-ignore
 /src/                   export-ignore
 build/                  export-ignore 
 postcss.config.js       export-ignore
+DEVELOPER_GUIDE.md      export-ignore

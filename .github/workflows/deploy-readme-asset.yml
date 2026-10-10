@@ -14,10 +14,10 @@ jobs:
     name: Update plugin assets and readme to WordPress.org
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: WordPress.org plugin asset/readme update
-        uses: bluehost/wp-plugin-readme-assets-updater@master
-        env:
-          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-          SLUG: quicktools-for-woocommerce
+    - uses: actions/checkout@v4
+    - name: WordPress.org plugin asset/readme update
+      uses: bluehost/wp-plugin-readme-assets-updater@master
+      env:
+        SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+        SLUG: quicktools-for-woocommerce

@@ -1,0 +1,7 @@
+{
+  "name": "hmbashar/quicktools-for-woocommerce",
+  "description": "QuickTools for WooCommerce — sales insights and previous-order tools.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {}
+}
