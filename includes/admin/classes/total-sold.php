@@ -84,7 +84,58 @@ class Total_Sold {
 			return;
 		}
 
-		echo esc_html( (string) (int) $product->get_total_sales() );
+		$total_sold = (int) $product->get_total_sales();
+		$tier       = $this->get_sales_tier( $total_sold );
+		$formatted  = number_format_i18n( $total_sold );
+
+		$tooltip = sprintf(
+			/* translators: %s: formatted units sold */
+			__( '%s units sold', 'quicktools-for-woocommerce' ),
+			$formatted
+		);
+
+		printf(
+			'<span class="qtfw-sold-badge qtfw-sold-badge--%1$s" data-tooltip="%2$s" title="%2$s" aria-label="%2$s">',
+			esc_attr( $tier ),
+			esc_attr( $tooltip )
+		);
+
+		echo '<span class="qtfw-sold-badge__icon" aria-hidden="true">' . $this->get_icon_svg() . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG.
+		echo '<span class="qtfw-sold-badge__value">' . esc_html( $formatted ) . '</span>';
+		echo '</span>';
+	}
+
+	/**
+	 * Sales performance tier for badge styling.
+	 *
+	 * @param int $total_sold Units sold.
+	 * @return string
+	 */
+	private function get_sales_tier( $total_sold ) {
+		$total_sold = (int) $total_sold;
+
+		if ( $total_sold <= 0 ) {
+			return 'zero';
+		}
+
+		if ( $total_sold < 10 ) {
+			return 'low';
+		}
+
+		if ( $total_sold < 50 ) {
+			return 'mid';
+		}
+
+		return 'high';
+	}
+
+	/**
+	 * Inline chart icon SVG.
+	 *
+	 * @return string
+	 */
+	private function get_icon_svg() {
+		return '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 19H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 15V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 15V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 15V6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 	}
 
 	/**

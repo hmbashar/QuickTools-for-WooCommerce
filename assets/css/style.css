@@ -1,5 +1,191 @@
+/* Total Sold — storefront */
+:root {
+	--qtfw-sold-ink: #1c1917;
+	--qtfw-sold-muted: #78716c;
+	--qtfw-sold-surface: #fafaf9;
+	--qtfw-sold-border: rgba(28, 25, 23, 0.08);
+	--qtfw-sold-accent: #0f766e;
+	--qtfw-sold-accent-soft: rgba(15, 118, 110, 0.1);
+	--qtfw-sold-high: #b45309;
+	--qtfw-sold-high-soft: rgba(180, 83, 9, 0.12);
+}
+
 .qtfw-total-sold {
-    font-size: 16px;
-    color: #333;
-    margin-top: 10px;
+	--qtfw-local-accent: var(--qtfw-sold-accent);
+	--qtfw-local-soft: var(--qtfw-sold-accent-soft);
+	display: inline-flex;
+	align-items: center;
+	gap: 0.55rem;
+	box-sizing: border-box;
+	margin: 0.55rem 0 0;
+	padding: 0.4rem 0.7rem;
+	border: 1px solid var(--qtfw-sold-border);
+	border-radius: 999px;
+	background: var(--qtfw-sold-surface);
+	color: var(--qtfw-sold-ink);
+	font-family: inherit;
+	line-height: 1.2;
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.qtfw-total-sold--tier-zero {
+	--qtfw-local-accent: var(--qtfw-sold-muted);
+	--qtfw-local-soft: rgba(120, 113, 108, 0.12);
+	opacity: 0.85;
+}
+
+.qtfw-total-sold--tier-mid {
+	--qtfw-local-accent: #0f766e;
+	--qtfw-local-soft: rgba(15, 118, 110, 0.12);
+}
+
+.qtfw-total-sold--tier-high {
+	--qtfw-local-accent: var(--qtfw-sold-high);
+	--qtfw-local-soft: var(--qtfw-sold-high-soft);
+	border-color: rgba(180, 83, 9, 0.18);
+	background: linear-gradient(180deg, #fffbeb 0%, #fafaf9 100%);
+}
+
+.qtfw-total-sold__icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.7rem;
+	height: 1.7rem;
+	border-radius: 999px;
+	background: var(--qtfw-local-soft);
+	color: var(--qtfw-local-accent);
+	flex: 0 0 auto;
+}
+
+.qtfw-total-sold__svg {
+	display: block;
+}
+
+.qtfw-total-sold__body {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.35rem;
+	min-width: 0;
+}
+
+.qtfw-total-sold__label {
+	color: var(--qtfw-sold-muted);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.qtfw-total-sold__value {
+	color: var(--qtfw-sold-ink);
+	font-size: 0.95rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.01em;
+}
+
+.qtfw-total-sold__meta {
+	display: none;
+}
+
+/* Loop: compact chip */
+.qtfw-total-sold--loop {
+	max-width: 100%;
+}
+
+.qtfw-total-sold--loop .qtfw-total-sold__icon {
+	width: 1.45rem;
+	height: 1.45rem;
+}
+
+.qtfw-total-sold--loop .qtfw-total-sold__svg {
+	width: 13px;
+	height: 13px;
+}
+
+.qtfw-total-sold--loop .qtfw-total-sold__value {
+	font-size: 0.88rem;
+}
+
+/* Single product: richer metric card */
+.qtfw-total-sold--single {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.65rem 0.85rem;
+	width: fit-content;
+	max-width: 100%;
+	margin: 0.85rem 0 1rem;
+	padding: 0.75rem 1rem;
+	border-radius: 14px;
+	box-shadow: 0 1px 0 rgba(28, 25, 23, 0.04), 0 8px 24px rgba(28, 25, 23, 0.04);
+}
+
+.qtfw-total-sold--single .qtfw-total-sold__icon {
+	width: 2.15rem;
+	height: 2.15rem;
+}
+
+.qtfw-total-sold--single .qtfw-total-sold__svg {
+	width: 18px;
+	height: 18px;
+}
+
+.qtfw-total-sold--single .qtfw-total-sold__body {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.15rem;
+}
+
+.qtfw-total-sold--single .qtfw-total-sold__label {
+	font-size: 0.68rem;
+}
+
+.qtfw-total-sold--single .qtfw-total-sold__value {
+	font-size: 1.35rem;
+	line-height: 1.1;
+}
+
+.qtfw-total-sold--single .qtfw-total-sold__meta {
+	display: inline-block;
+	margin-left: auto;
+	padding: 0.28rem 0.55rem;
+	border-radius: 999px;
+	background: var(--qtfw-local-soft);
+	color: var(--qtfw-local-accent);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+	white-space: nowrap;
+}
+
+.qtfw-total-sold--single:hover {
+	transform: translateY(-1px);
+	border-color: rgba(15, 118, 110, 0.18);
+	box-shadow: 0 1px 0 rgba(28, 25, 23, 0.04), 0 12px 28px rgba(28, 25, 23, 0.07);
+}
+
+.qtfw-total-sold--single.qtfw-total-sold--tier-high:hover {
+	border-color: rgba(180, 83, 9, 0.28);
+}
+
+@media (max-width: 480px) {
+	.qtfw-total-sold--single {
+		width: 100%;
+	}
+
+	.qtfw-total-sold--single .qtfw-total-sold__meta {
+		margin-left: 0;
+		width: 100%;
+		text-align: center;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.qtfw-total-sold,
+	.qtfw-total-sold--single:hover {
+		transition: none;
+		transform: none;
+	}
 }

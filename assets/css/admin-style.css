@@ -1,7 +1,131 @@
 th#product_sold,
 .wp-list-table th.column-product_sold {
-	width: 6%;
+	width: 8%;
+	min-width: 88px;
 }
+
+/* Total Sold — admin products column */
+.wp-list-table td.product_sold,
+.wp-list-table td.column-product_sold {
+	vertical-align: middle;
+}
+
+.qtfw-sold-badge {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	box-sizing: border-box;
+	min-width: 52px;
+	padding: 4px 9px 4px 7px;
+	border: 1px solid transparent;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	cursor: help;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.qtfw-sold-badge__icon {
+	display: inline-flex;
+	opacity: 0.9;
+}
+
+.qtfw-sold-badge__icon svg {
+	display: block;
+}
+
+.qtfw-sold-badge__value {
+	letter-spacing: -0.01em;
+}
+
+.qtfw-sold-badge--zero {
+	background: #f3f4f5;
+	border-color: #dcdcde;
+	color: #646970;
+}
+
+.qtfw-sold-badge--low {
+	background: #f0f6fc;
+	border-color: #c5d9ed;
+	color: #135e96;
+}
+
+.qtfw-sold-badge--mid {
+	background: #edfaef;
+	border-color: #b8e6bf;
+	color: #007017;
+}
+
+.qtfw-sold-badge--high {
+	background: linear-gradient(180deg, #fff8e5 0%, #fff3cd 100%);
+	border-color: #e2c36b;
+	color: #8a6116;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.qtfw-sold-badge:hover {
+	transform: translateY(-1px);
+}
+
+.qtfw-sold-badge::after {
+	content: attr(data-tooltip);
+	position: absolute;
+	bottom: calc(100% + 8px);
+	left: 50%;
+	z-index: 100000;
+	padding: 5px 8px;
+	border-radius: 4px;
+	background: #1d2327;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.3;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateX(-50%) translateY(2px);
+	transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
+}
+
+.qtfw-sold-badge::before {
+	content: '';
+	position: absolute;
+	bottom: calc(100% + 2px);
+	left: 50%;
+	z-index: 100001;
+	border: 5px solid transparent;
+	border-top-color: #1d2327;
+	pointer-events: none;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateX(-50%);
+	transition: opacity 0.12s ease, visibility 0.12s ease;
+}
+
+.qtfw-sold-badge:hover::after,
+.qtfw-sold-badge:hover::before {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(0);
+}
+
+.qtfw-sold-badge:hover::before {
+	transform: translateX(-50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.qtfw-sold-badge,
+	.qtfw-sold-badge:hover {
+		transition: none;
+		transform: none;
+	}
+}
+
 
 /* Give the badges enough room on the orders list */
 .wp-list-table th.column-previous_orders,
