@@ -121,8 +121,9 @@ class PreviousOrdersColumn {
 		}
 
 		$billing_phone = $this->normalize_phone( $order->get_billing_phone() );
+		$phone_core    = $this->get_phone_core( $billing_phone );
 
-		if ( '' === $billing_phone ) {
+		if ( '' === $billing_phone || '' === $phone_core ) {
 			echo esc_html__( 'No Phone Number', 'quicktools-for-woocommerce' );
 			return;
 		}
@@ -132,7 +133,7 @@ class PreviousOrdersColumn {
 	}
 
 	/**
-	 * Normalize a billing phone for lookup/caching.
+	 * Sanitize a raw billing phone string.
 	 *
 	 * @param string $phone Raw phone.
 	 * @return string
@@ -142,19 +143,147 @@ class PreviousOrdersColumn {
 			return '';
 		}
 
-		// Keep formatting as stored so SQL exact-match still works.
 		return trim( sanitize_text_field( wp_unslash( $phone ) ) );
+	}
+
+	/**
+	 * Digits-only form of a phone number.
+	 *
+	 * @param string $phone Phone number.
+	 * @return string
+	 */
+	private function phone_digits( $phone ) {
+		return preg_replace( '/\D+/', '', (string) $phone );
+	}
+
+	/**
+	 * Store calling-code digits from WooCommerce base country (e.g. 880).
+	 *
+	 * @return string
+	 */
+	private function get_store_calling_code_digits() {
+		if ( ! function_exists( 'WC' ) || ! WC()->countries ) {
+			return '';
+		}
+
+		$base    = function_exists( 'wc_get_base_location' ) ? wc_get_base_location() : array();
+		$country = isset( $base['country'] ) ? (string) $base['country'] : '';
+
+		if ( '' === $country ) {
+			return '';
+		}
+
+		$code = WC()->countries->get_country_calling_code( $country );
+
+		return $this->phone_digits( is_string( $code ) ? $code : '' );
+	}
+
+	/**
+	 * National phone core shared by local and country-code formats.
+	 *
+	 * Examples (BD / 880): +8801712345678, 8801712345678, 01712345678 → 1712345678
+	 *
+	 * @param string $phone Phone number.
+	 * @return string
+	 */
+	private function get_phone_core( $phone ) {
+		$digits = $this->phone_digits( $phone );
+
+		if ( '' === $digits ) {
+			return '';
+		}
+
+		// Strip international "00" prefix.
+		if ( 0 === strpos( $digits, '00' ) ) {
+			$digits = substr( $digits, 2 );
+		}
+
+		$calling = $this->get_store_calling_code_digits();
+
+		// Strip store country calling code when present.
+		if (
+			'' !== $calling
+			&& 0 === strpos( $digits, $calling )
+			&& strlen( $digits ) > ( strlen( $calling ) + 6 )
+		) {
+			$digits = substr( $digits, strlen( $calling ) );
+		}
+
+		// Strip trunk prefix (leading zeros).
+		$digits = ltrim( $digits, '0' );
+
+		return $digits;
+	}
+
+	/**
+	 * SQL expression that strips common phone formatting characters.
+	 *
+	 * Column must be a hard-coded safe identifier (never user input).
+	 *
+	 * @param string $column Column expression, e.g. pm.meta_value or a.phone.
+	 * @return string
+	 */
+	private function sql_phone_digits_expr( $column ) {
+		$allowed = array( 'pm.meta_value', 'a.phone' );
+
+		if ( ! in_array( $column, $allowed, true ) ) {
+			return "'0'";
+		}
+
+		$expr = $column;
+
+		foreach ( array( ' ', '-', '+', '(', ')', '.', '/', "\t" ) as $char ) {
+			$expr = 'REPLACE(' . $expr . ", '" . $char . "', '')";
+		}
+
+		return $expr;
+	}
+
+	/**
+	 * Build SQL + prepare args that match the same number with/without country code.
+	 *
+	 * @param string $column Safe phone column expression.
+	 * @param string $phone  Raw/sanitized phone from the current order.
+	 * @return array{sql:string,values:array<int,int|string>}|null
+	 */
+	private function get_phone_match_clause( $column, $phone ) {
+		$core = $this->get_phone_core( $phone );
+
+		if ( '' === $core ) {
+			return null;
+		}
+
+		$digits_sql = $this->sql_phone_digits_expr( $column );
+		$core_len   = strlen( $core );
+
+		// Short numbers: exact digit match only (avoid over-matching).
+		if ( $core_len < 7 ) {
+			return array(
+				'sql'    => "{$digits_sql} = %s",
+				'values' => array( $this->phone_digits( $phone ) ),
+			);
+		}
+
+		/*
+		 * Match when digit-only phone ends with the national core.
+		 * Covers: 017..., +88017..., 88017..., spaces/dashes, etc.
+		 */
+		return array(
+			'sql'    => "(CHAR_LENGTH({$digits_sql}) >= %d AND RIGHT({$digits_sql}, %d) = %s)",
+			'values' => array( $core_len, $core_len, $core ),
+		);
 	}
 
 	/**
 	 * Get order counts by status for a phone, excluding the current order.
 	 *
-	 * @param string $phone_number     Normalized billing phone.
+	 * @param string $phone_number     Sanitized billing phone.
 	 * @param int    $exclude_order_id Current order ID to exclude.
 	 * @return array<string, int>
 	 */
 	private function get_orders_by_status_counts( $phone_number, $exclude_order_id = 0 ) {
-		$cache_key = md5( $phone_number . '|' . (int) $exclude_order_id );
+		$phone_core = $this->get_phone_core( $phone_number );
+		$cache_key  = md5( $phone_core . '|' . (int) $exclude_order_id );
 
 		if ( isset( self::$counts_cache[ $cache_key ] ) ) {
 			return self::$counts_cache[ $cache_key ];
@@ -233,21 +362,26 @@ class PreviousOrdersColumn {
 	private function get_orders_by_status_counts_legacy( $phone_number, $exclude_order_id = 0 ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin list aggregate; request-cached above.
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT p.post_status AS status, COUNT(*) AS count
-				 FROM {$wpdb->posts} p
-				 INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
-				 WHERE pm.meta_key = '_billing_phone'
-				 AND pm.meta_value = %s
-				 AND p.post_type = 'shop_order'
-				 AND p.ID != %d
-				 GROUP BY p.post_status",
-				$phone_number,
-				(int) $exclude_order_id
-			)
-		);
+		$match = $this->get_phone_match_clause( 'pm.meta_value', $phone_number );
+
+		if ( null === $match ) {
+			return $this->empty_status_counts();
+		}
+
+		$sql = "SELECT p.post_status AS status, COUNT(*) AS count
+			FROM {$wpdb->posts} p
+			INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+			WHERE pm.meta_key = '_billing_phone'
+			AND {$match['sql']}
+			AND p.post_type = 'shop_order'
+			AND p.ID != %d
+			GROUP BY p.post_status";
+
+		$args   = $match['values'];
+		$args[] = (int) $exclude_order_id;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Safe column expr; values prepared below.
+		$results = $wpdb->get_results( $wpdb->prepare( $sql, ...$args ) );
 
 		return $this->map_status_results( $results );
 	}
@@ -264,24 +398,29 @@ class PreviousOrdersColumn {
 	private function get_orders_by_status_counts_hpos( $phone_number, $exclude_order_id = 0 ) {
 		global $wpdb;
 
+		$match = $this->get_phone_match_clause( 'a.phone', $phone_number );
+
+		if ( null === $match ) {
+			return $this->empty_status_counts();
+		}
+
 		$orders_table    = $wpdb->prefix . 'wc_orders';
 		$addresses_table = $wpdb->prefix . 'wc_order_addresses';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin list aggregate; request-cached above.
-		$results = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT o.status AS status, COUNT(*) AS count
-				 FROM {$orders_table} o
-				 INNER JOIN {$addresses_table} a ON a.order_id = o.id
-				 WHERE a.address_type = 'billing'
-				 AND a.phone = %s
-				 AND o.type = 'shop_order'
-				 AND o.id != %d
-				 GROUP BY o.status",
-				$phone_number,
-				(int) $exclude_order_id
-			)
-		);
+		$sql = "SELECT o.status AS status, COUNT(*) AS count
+			FROM {$orders_table} o
+			INNER JOIN {$addresses_table} a ON a.order_id = o.id
+			WHERE a.address_type = 'billing'
+			AND {$match['sql']}
+			AND o.type = 'shop_order'
+			AND o.id != %d
+			GROUP BY o.status";
+
+		$args   = $match['values'];
+		$args[] = (int) $exclude_order_id;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Safe column expr; values prepared below.
+		$results = $wpdb->get_results( $wpdb->prepare( $sql, ...$args ) );
 
 		return $this->map_status_results( $results );
 	}
