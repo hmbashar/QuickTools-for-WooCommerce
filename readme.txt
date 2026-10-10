@@ -45,7 +45,15 @@ Yes. Go to WooCommerce → QuickTools and toggle each feature. Disabled features
 = How can I report a bug or request a feature? =
 Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/QuickTools-for-WooCommerce).
 
+== Screenshots ==
+
+1. Control Center — enable or disable each QuickTools feature from WooCommerce → QuickTools.
+2. Total Sold metric card on the single product page.
+3. Previous Orders status badges on the orders list.
+4. Sold column badges with tooltips on the products list.
+
 == Changelog ==
+
 
 = 1.1.0 =
 * Added QuickTools Control Center (WooCommerce → QuickTools) with per-feature enable/disable toggles.
