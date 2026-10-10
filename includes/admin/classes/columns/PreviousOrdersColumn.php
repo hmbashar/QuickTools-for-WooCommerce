@@ -308,23 +308,28 @@ class PreviousOrdersColumn {
 	 */
 	private function render_tooltip_circles( $counts ) {
 		$statuses = array(
-			'Total'      => array(
+			array(
+				'label' => __( 'Total previous orders', 'quicktools-for-woocommerce' ),
 				'count' => (int) ( $counts['total'] ?? 0 ),
-				'color' => '#aaa',
+				'color' => '#6c757d',
 			),
-			'Processing' => array(
+			array(
+				'label' => __( 'Processing', 'quicktools-for-woocommerce' ),
 				'count' => (int) ( $counts['processing'] ?? 0 ),
 				'color' => '#28a745',
 			),
-			'On Hold'    => array(
+			array(
+				'label' => __( 'On hold', 'quicktools-for-woocommerce' ),
 				'count' => (int) ( $counts['on-hold'] ?? 0 ),
 				'color' => '#17a2b8',
 			),
-			'Pending'    => array(
+			array(
+				'label' => __( 'Pending payment', 'quicktools-for-woocommerce' ),
 				'count' => (int) ( $counts['pending'] ?? 0 ),
 				'color' => '#ffc107',
 			),
-			'Cancelled'  => array(
+			array(
+				'label' => __( 'Cancelled', 'quicktools-for-woocommerce' ),
 				'count' => (int) ( $counts['cancelled'] ?? 0 ),
 				'color' => '#dc3545',
 			),
@@ -332,16 +337,16 @@ class PreviousOrdersColumn {
 
 		echo '<div class="qtfw-previous-orders">';
 
-		foreach ( $statuses as $label => $status ) {
+		foreach ( $statuses as $status ) {
 			$tooltip = sprintf(
 				/* translators: 1: order status label, 2: count */
 				__( '%1$s: %2$d', 'quicktools-for-woocommerce' ),
-				$label,
+				$status['label'],
 				$status['count']
 			);
 
 			printf(
-				'<span class="qtfw-tooltip-circle" style="background-color:%1$s;" title="%2$s" aria-label="%2$s">%3$s</span>',
+				'<span class="qtfw-tooltip-circle" style="background-color:%1$s;" data-tooltip="%2$s" title="%2$s" aria-label="%2$s" tabindex="0">%3$s</span>',
 				esc_attr( $status['color'] ),
 				esc_attr( $tooltip ),
 				esc_html( (string) $status['count'] )
