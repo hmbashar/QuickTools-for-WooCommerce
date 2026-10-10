@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - trunk
-    paths:
-      - .wordpress-org/**
-      - .wordpress-org/blueprints/**
-      - readme.txt
 
 jobs:
   update-assets-and-readme:
