@@ -80,19 +80,17 @@ class Main {
 	 * @param string $hook_suffix Current admin page hook.
 	 */
 	public function enqueue_admin_assets( $hook_suffix ) {
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$screen    = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		$screen_id = ( $screen && isset( $screen->id ) ) ? (string) $screen->id : '';
 
-		if ( ! $screen ) {
-			return;
-		}
-
-		$allowed_screens = array(
-			'edit-product',
-			'edit-shop_order',
-			'woocommerce_page_wc-orders',
+		$is_products = ( 'edit-product' === $screen_id );
+		$is_orders   = (
+			'edit-shop_order' === $screen_id
+			|| 'woocommerce_page_wc-orders' === $screen_id
+			|| false !== strpos( (string) $hook_suffix, 'wc-orders' )
 		);
 
-		if ( ! in_array( $screen->id, $allowed_screens, true ) ) {
+		if ( ! $is_products && ! $is_orders ) {
 			return;
 		}
 
