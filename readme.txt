@@ -3,8 +3,8 @@ Contributors: hmbashar
 Tags: total sold, ecommerce, woocommerce, orders, product sales
 Requires at least: 5.0
 Requires PHP: 7.4
-Tested up to: 6.6.2
-Stable tag: 1.0.0
+Tested up to: 7.1.3
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,14 +12,15 @@ QuickTools for WooCommerce adds sales insights on products and previous-order ba
 
 == Description ==
 
-QuickTools for WooCommerce enhances your WooCommerce admin and storefront with lightweight sales tools. No settings page is required — activate the plugin and the features are available immediately.
+QuickTools for WooCommerce enhances your WooCommerce admin and storefront with lightweight sales tools. Use the Control Center under WooCommerce → QuickTools to enable or disable each feature independently.
 
 == Key Features ==
 
-* **Sold column (Products):** Sortable units-sold column on the Products list for all product types.
-* **Total Sold (Storefront):** Shows total units sold in shop/archive loops and on single product pages.
-* **Previous Orders column (Orders):** On each order, shows prior order counts for the same billing phone — Total, Processing, On Hold, Pending, and Cancelled. Works with classic orders and HPOS.
-* **Lightweight:** No JavaScript; CSS loads only on relevant product/order screens.
+* **Control Center:** Modern admin panel to toggle every feature on or off.
+* **Sold column (Products):** Sortable units-sold badge column on the Products list.
+* **Total Sold (Storefront):** Premium Total Sold UI on shop/archive loops and single product pages (separately toggleable).
+* **Previous Orders column (Orders):** Previous-order status badges matched by billing phone (with/without country code). Works with classic orders and HPOS.
+* **Performance-minded:** Disabled features are not loaded; CSS/JS enqueue only on relevant screens.
 
 == Installation ==
 
@@ -38,10 +39,19 @@ Yes. QuickTools for WooCommerce requires WooCommerce to be installed and activat
 = Does it support High-Performance Order Storage (HPOS)? =
 Yes. The Previous Orders column registers on both the classic and HPOS orders screens and reads billing phone from HPOS address tables when enabled.
 
+= Can I disable individual features? =
+Yes. Go to WooCommerce → QuickTools and toggle each feature. Disabled features are not loaded.
+
 = How can I report a bug or request a feature? =
 Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/QuickTools-for-WooCommerce).
 
 == Changelog ==
+
+= 1.1.0 =
+* Added QuickTools Control Center (WooCommerce → QuickTools) with per-feature enable/disable toggles.
+* Premium Total Sold UI for admin and storefront.
+* Disabled features are not loaded; assets load only when needed.
+* Settings saved via the WordPress Settings API with capability and sanitize checks.
 
 = 1.0.0 =
 * Initial release.
@@ -51,5 +61,5 @@ Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/Qu
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-Initial release of QuickTools for WooCommerce.
+= 1.1.0 =
+Adds a Control Center to enable/disable each feature securely.

@@ -18,11 +18,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Total_Sold {
 
 	/**
-	 * Register storefront display hooks.
+	 * Whether to show in product loops.
+	 *
+	 * @var bool
 	 */
-	public function __construct() {
-		add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_total_sold_in_loop' ), 15 );
-		add_action( 'woocommerce_single_product_summary', array( $this, 'display_total_sold_on_single_product' ), 25 );
+	private $show_loop;
+
+	/**
+	 * Whether to show on single product pages.
+	 *
+	 * @var bool
+	 */
+	private $show_single;
+
+	/**
+	 * Register storefront display hooks.
+	 *
+	 * @param bool $show_loop   Enable loop display.
+	 * @param bool $show_single Enable single product display.
+	 */
+	public function __construct( $show_loop = true, $show_single = true ) {
+		$this->show_loop   = (bool) $show_loop;
+		$this->show_single = (bool) $show_single;
+
+		if ( $this->show_loop ) {
+			add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_total_sold_in_loop' ), 15 );
+		}
+
+		if ( $this->show_single ) {
+			add_action( 'woocommerce_single_product_summary', array( $this, 'display_total_sold_on_single_product' ), 25 );
+		}
 	}
 
 	/**

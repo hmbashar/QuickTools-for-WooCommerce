@@ -8,6 +8,8 @@
 
 namespace QTFW\Includes;
 
+use QTFW\Includes\Classes\Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -23,6 +25,13 @@ class Main {
 	 * @var Main|null
 	 */
 	private static $instance = null;
+
+	/**
+	 * Settings helper.
+	 *
+	 * @var Settings
+	 */
+	private $settings;
 
 	/**
 	 * Get the singleton instance.
@@ -41,6 +50,11 @@ class Main {
 	 * Constructor.
 	 */
 	private function __construct() {
+		require_once QTFW_PLUGIN_DIR . 'includes/classes/class-qtfw-settings.php';
+
+		Settings::maybe_install();
+		$this->settings = Settings::instance();
+
 		$this->load_dependencies();
 		$this->define_hooks();
 		$this->initialize_features();
@@ -55,14 +69,32 @@ class Main {
 	}
 
 	/**
-	 * Enqueue frontend CSS only on WooCommerce product views.
+	 * Enqueue frontend CSS only on relevant product views when enabled.
 	 */
 	public function enqueue_public_assets() {
+		if ( ! $this->settings->is_frontend_total_sold_enabled() ) {
+			return;
+		}
+
 		if ( ! function_exists( 'is_woocommerce' ) ) {
 			return;
 		}
 
-		if ( ! is_woocommerce() && ! is_product() && ! is_shop() && ! is_product_taxonomy() ) {
+		$show = false;
+
+		if ( $this->settings->is_enabled( 'frontend_total_sold_single' ) && is_product() ) {
+			$show = true;
+		}
+
+		if (
+			! $show
+			&& $this->settings->is_enabled( 'frontend_total_sold_loop' )
+			&& ( is_shop() || is_product_taxonomy() || ( is_woocommerce() && ! is_product() && ! is_cart() && ! is_checkout() && ! is_account_page() ) )
+		) {
+			$show = true;
+		}
+
+		if ( ! $show ) {
 			return;
 		}
 
@@ -75,7 +107,7 @@ class Main {
 	}
 
 	/**
-	 * Enqueue admin CSS only on product and order list screens.
+	 * Enqueue admin list CSS only for enabled feature screens.
 	 *
 	 * @param string $hook_suffix Current admin page hook.
 	 */
@@ -83,8 +115,10 @@ class Main {
 		$screen    = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 		$screen_id = ( $screen && isset( $screen->id ) ) ? (string) $screen->id : '';
 
-		$is_products = ( 'edit-product' === $screen_id );
-		$is_orders   = (
+		$is_products = ( 'edit-product' === $screen_id )
+			&& $this->settings->is_enabled( 'admin_total_sold' );
+
+		$is_orders = $this->settings->is_enabled( 'previous_orders' ) && (
 			'edit-shop_order' === $screen_id
 			|| 'woocommerce_page_wc-orders' === $screen_id
 			|| false !== strpos( (string) $hook_suffix, 'wc-orders' )
@@ -103,23 +137,47 @@ class Main {
 	}
 
 	/**
-	 * Load feature class files.
+	 * Load class files required for enabled features.
 	 */
 	private function load_dependencies() {
-		require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/total-sold.php';
-		require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
-		require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/columns/PreviousOrdersColumn.php';
+		if ( is_admin() ) {
+			require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/class-qtfw-admin.php';
+
+			if ( $this->settings->is_enabled( 'admin_total_sold' ) ) {
+				require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/total-sold.php';
+			}
+
+			if ( $this->settings->is_enabled( 'previous_orders' ) ) {
+				require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/columns/PreviousOrdersColumn.php';
+			}
+		}
+
+		if ( $this->settings->is_frontend_total_sold_enabled() ) {
+			require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
+		}
 	}
 
 	/**
-	 * Instantiate feature classes.
+	 * Instantiate enabled features only.
 	 */
 	private function initialize_features() {
 		if ( is_admin() ) {
-			new \QTFW\Includes\Admin\Classes\Total_Sold();
-			new \QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn();
+			new \QTFW\Includes\Admin\Classes\Admin();
+
+			if ( $this->settings->is_enabled( 'admin_total_sold' ) ) {
+				new \QTFW\Includes\Admin\Classes\Total_Sold();
+			}
+
+			if ( $this->settings->is_enabled( 'previous_orders' ) ) {
+				new \QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn();
+			}
 		}
 
-		new \QTFW\Includes\Classes\Total_Sold();
+		if ( $this->settings->is_frontend_total_sold_enabled() ) {
+			new \QTFW\Includes\Classes\Total_Sold(
+				$this->settings->is_enabled( 'frontend_total_sold_loop' ),
+				$this->settings->is_enabled( 'frontend_total_sold_single' )
+			);
+		}
 	}
 }

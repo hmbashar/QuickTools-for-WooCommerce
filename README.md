@@ -4,11 +4,11 @@ Lightweight WooCommerce tools for product sales visibility and previous-order in
 
 ## Features
 
-- **Sold column (Products)** — Sortable units-sold column on the Products list (all product types via `get_total_sales()`).
-- **Total Sold (Storefront)** — Shows total units sold in shop/archive loops and on single product pages.
-- **Previous Orders (Orders)** — Status count badges for prior orders sharing the same billing phone (Total, Processing, On Hold, Pending, Cancelled). Supports classic `shop_order` lists and HPOS.
-- **No settings required** — Activate with WooCommerce; features load automatically.
-- **Lean assets** — CSS only, enqueued on relevant product/order screens.
+- **Control Center** — WooCommerce → QuickTools admin panel with per-feature toggles.
+- **Sold column (Products)** — Sortable units-sold badge column on the Products list.
+- **Total Sold (Storefront)** — Premium chip/card UI on shop loops and single product pages (separately toggleable).
+- **Previous Orders (Orders)** — Status badges for prior orders sharing the same billing phone (with/without country code). Supports classic lists and HPOS.
+- **Lean by default** — Disabled features are not loaded; CSS/JS enqueue only on relevant screens.
 
 ## Requirements
 
@@ -24,23 +24,28 @@ Lightweight WooCommerce tools for product sales visibility and previous-order in
 
 ## Security & performance notes
 
+- Settings require `manage_woocommerce`; saved through the Settings API with sanitization.
 - Admin column output is gated with `edit_products` / `edit_shop_orders`.
 - All displayed values are escaped; phone lookups use prepared SQL.
-- Previous-order counts are cached per request (by phone + excluded order ID) to reduce repeat queries on the orders list.
-- Debug `error_log` of phone numbers / SQL was removed.
-- Frontend/admin CSS loads only on WooCommerce product views and product/order list screens.
+- Previous-order counts are cached per request (by phone core + excluded order ID).
+- Feature classes and assets load only when that feature is enabled and the screen needs them.
 
 ## Roadmap
 
 Planned improvements (not implemented yet):
 
-1. **Settings page** — Toggle Sold / Total Sold / Previous Orders independently.
-2. **Matching options** — Match previous orders by email, phone, or both; optional phone normalization.
-3. **More status badges** — Completed, refunded, failed (configurable).
-4. **Batch prefetch** — Prefetch counts for all phones on the current orders page in one query.
-5. **Variable product breakdown** — Optional per-variation sold counts in admin.
+1. **Matching options** — Match previous orders by email, phone, or both.
+2. **More status badges** — Completed, refunded, failed (configurable).
+3. **Batch prefetch** — Prefetch counts for all phones on the current orders page in one query.
+4. **Variable product breakdown** — Optional per-variation sold counts in admin.
 
 ## Changelog
+
+### 1.1.0
+
+- Control Center admin panel with enable/disable toggles for each feature.
+- Premium Total Sold UI (admin + storefront).
+- Load/enqueue only what is enabled.
 
 ### 1.0.0
 
