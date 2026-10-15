@@ -73,6 +73,7 @@ class Settings {
 			'recently_sold'              => 1,
 			'only_left'                  => 1,
 			'low_stock_email'            => 1,
+			'best_seller'                => 1,
 		);
 	}
 
@@ -122,6 +123,11 @@ class Settings {
 				'title'       => __( 'Low Stock email alert', 'quicktools-for-woocommerce' ),
 				'description' => __( 'Email the store admin once when a product stock falls to its low-stock threshold or below.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Admin', 'quicktools-for-woocommerce' ),
+			),
+			'best_seller'                => array(
+				'title'       => __( 'Best Seller badge (Storefront)', 'quicktools-for-woocommerce' ),
+				'description' => __( 'Mark the top-selling products with a Best Seller badge on shop loops and single product pages.', 'quicktools-for-woocommerce' ),
+				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
 			),
 		);
 	}

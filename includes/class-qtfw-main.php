@@ -177,6 +177,10 @@ class Main {
 		if ( $this->settings->is_enabled( 'only_left' ) ) {
 			require_once QTFW_PLUGIN_DIR . 'includes/classes/only-left.php';
 		}
+
+		if ( $this->settings->is_enabled( 'best_seller' ) ) {
+			require_once QTFW_PLUGIN_DIR . 'includes/classes/best-seller.php';
+		}
 	}
 
 	/**
@@ -216,6 +220,10 @@ class Main {
 
 		if ( $this->settings->is_enabled( 'only_left' ) ) {
 			new \QTFW\Includes\Classes\Only_Left();
+		}
+
+		if ( $this->settings->is_enabled( 'best_seller' ) ) {
+			new \QTFW\Includes\Classes\Best_Seller();
 		}
 	}
 }
