@@ -221,17 +221,17 @@ th#product_sold,
 	transform: translateX(-50%);
 }
 
-/* Stock Level — admin products column */
-.wp-list-table th.column-qtfw_stock_level {
+/* Stock Qty — admin products column */
+.wp-list-table th.column-qtfw_stock_qty {
 	width: 9%;
 	min-width: 96px;
 }
 
-.wp-list-table td.column-qtfw_stock_level {
+.wp-list-table td.column-qtfw_stock_qty {
 	vertical-align: middle;
 }
 
-.qtfw-stock-badge {
+.qtfw-stock-qty {
 	display: inline-block;
 	box-sizing: border-box;
 	min-width: 44px;
@@ -246,25 +246,25 @@ th#product_sold,
 	white-space: nowrap;
 }
 
-.qtfw-stock-badge--ok {
+.qtfw-stock-qty--ok {
 	background: #edfaef;
 	border-color: #b8e6bf;
 	color: #007017;
 }
 
-.qtfw-stock-badge--low {
+.qtfw-stock-qty--low {
 	background: #fff8e5;
 	border-color: #e2c36b;
 	color: #8a6116;
 }
 
-.qtfw-stock-badge--out {
+.qtfw-stock-qty--out {
 	background: #fcf0f1;
 	border-color: #f0b8bb;
 	color: #b32d2e;
 }
 
-.qtfw-stock-badge--unmanaged {
+.qtfw-stock-qty--unmanaged {
 	background: #f3f4f5;
 	border-color: #dcdcde;
 	color: #646970;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin Stock Level column for the products list table.
+ * Admin Stock Qty column for the products list table.
  *
  * @package QuickToolsForWooCommerce
  * @since   1.2.0
@@ -13,9 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Adds a sortable Stock Level badge column to the WooCommerce products table.
+ * Adds a sortable Stock Qty badge column to the WooCommerce products table.
  */
-class Stock_Level {
+class Stock_Qty {
 
 	/**
 	 * Register product list table hooks.
@@ -28,7 +28,7 @@ class Stock_Level {
 	}
 
 	/**
-	 * Insert the Stock Level column after the product name.
+	 * Insert the Stock Qty column after the product name.
 	 *
 	 * @param array $columns Existing columns.
 	 * @return array
@@ -44,7 +44,7 @@ class Stock_Level {
 			$new_columns[ $key ] = $column;
 
 			if ( 'name' === $key ) {
-				$new_columns['qtfw_stock_level'] = __( 'Stock Level', 'quicktools-for-woocommerce' );
+				$new_columns['qtfw_stock_qty'] = __( 'Stock Qty', 'quicktools-for-woocommerce' );
 			}
 		}
 
@@ -58,7 +58,7 @@ class Stock_Level {
 	 * @return array
 	 */
 	public function make_column_sortable( $columns ) {
-		$columns['qtfw_stock_level'] = 'qtfw_stock_level';
+		$columns['qtfw_stock_qty'] = 'qtfw_stock_qty';
 		return $columns;
 	}
 
@@ -69,7 +69,7 @@ class Stock_Level {
 	 * @param int    $post_id Product ID.
 	 */
 	public function render_column( $column, $post_id ) {
-		if ( 'qtfw_stock_level' !== $column || ! current_user_can( 'edit_products' ) ) {
+		if ( 'qtfw_stock_qty' !== $column || ! current_user_can( 'edit_products' ) ) {
 			return;
 		}
 
@@ -81,20 +81,7 @@ class Stock_Level {
 		}
 
 		if ( ! $product->managing_stock() ) {
-			$status = $product->get_stock_status();
-
-			if ( 'outofstock' === $status ) {
-				$tier  = 'out';
-				$label = __( 'Out of stock', 'quicktools-for-woocommerce' );
-			} elseif ( 'onbackorder' === $status ) {
-				$tier  = 'low';
-				$label = __( 'On backorder', 'quicktools-for-woocommerce' );
-			} else {
-				$tier  = 'unmanaged';
-				$label = __( 'In stock', 'quicktools-for-woocommerce' );
-			}
-
-			$this->print_badge( $tier, $label, $label );
+			$this->print_badge( 'unmanaged', '&mdash;', __( 'Stock quantity is not managed for this product', 'quicktools-for-woocommerce' ), true );
 			return;
 		}
 
@@ -125,13 +112,14 @@ class Stock_Level {
 	 * @param string $tier    Tier slug.
 	 * @param string $text    Visible text.
 	 * @param string $tooltip Tooltip text.
+	 * @param bool   $raw     Whether $text is trusted static markup.
 	 */
-	private function print_badge( $tier, $text, $tooltip ) {
+	private function print_badge( $tier, $text, $tooltip, $raw = false ) {
 		printf(
-			'<span class="qtfw-stock-badge qtfw-stock-badge--%1$s" title="%2$s" aria-label="%2$s">%3$s</span>',
+			'<span class="qtfw-stock-qty qtfw-stock-qty--%1$s" title="%2$s" aria-label="%2$s">%3$s</span>',
 			esc_attr( $tier ),
 			esc_attr( $tooltip ),
-			esc_html( $text )
+			$raw ? $text : esc_html( $text ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static entity or escaped.
 		);
 	}
 
@@ -151,7 +139,7 @@ class Stock_Level {
 			return;
 		}
 
-		if ( 'qtfw_stock_level' !== $query->get( 'orderby' ) || ! current_user_can( 'edit_products' ) ) {
+		if ( 'qtfw_stock_qty' !== $query->get( 'orderby' ) || ! current_user_can( 'edit_products' ) ) {
 			return;
 		}
 

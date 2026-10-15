@@ -69,7 +69,7 @@ class Settings {
 			'frontend_total_sold_loop'   => 1,
 			'frontend_total_sold_single' => 1,
 			'previous_orders'            => 1,
-			'stock_level'                => 1,
+			'stock_qty'                => 1,
 		);
 	}
 
@@ -100,9 +100,9 @@ class Settings {
 				'description' => __( 'Show previous-order status badges on the orders list, matched by billing phone.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Admin', 'quicktools-for-woocommerce' ),
 			),
-			'stock_level'                => array(
-				'title'       => __( 'Stock Level column (Products)', 'quicktools-for-woocommerce' ),
-				'description' => __( 'Show a sortable color-coded stock badge (in stock, low, out) on the products list.', 'quicktools-for-woocommerce' ),
+			'stock_qty'                => array(
+				'title'       => __( 'Stock Qty column (Products)', 'quicktools-for-woocommerce' ),
+				'description' => __( 'Show a sortable, color-coded stock quantity (low and out-of-stock highlighted) on the products list.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Admin', 'quicktools-for-woocommerce' ),
 			),
 		);
