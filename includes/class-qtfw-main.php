@@ -72,7 +72,7 @@ class Main {
 	 * Enqueue frontend CSS only on relevant product views when enabled.
 	 */
 	public function enqueue_public_assets() {
-		if ( ! $this->settings->is_frontend_total_sold_enabled() && ! $this->settings->is_enabled( 'recently_sold' ) && ! $this->settings->is_enabled( 'only_left' ) ) {
+		if ( ! $this->is_any_storefront_feature_enabled() ) {
 			return;
 		}
 
@@ -80,22 +80,10 @@ class Main {
 			return;
 		}
 
-		$show = false;
-
-		$single_on = $this->settings->is_enabled( 'frontend_total_sold_single' ) || $this->settings->is_enabled( 'recently_sold' ) || $this->settings->is_enabled( 'only_left' );
-		$loop_on   = $this->settings->is_enabled( 'frontend_total_sold_loop' ) || $this->settings->is_enabled( 'recently_sold' ) || $this->settings->is_enabled( 'only_left' );
-
-		if ( $single_on && is_product() ) {
-			$show = true;
-		}
-
-		if (
-			! $show
-			&& $loop_on
-			&& ( is_shop() || is_product_taxonomy() || ( is_woocommerce() && ! is_product() && ! is_cart() && ! is_checkout() && ! is_account_page() ) )
-		) {
-			$show = true;
-		}
+		$show = is_product()
+			|| is_shop()
+			|| is_product_taxonomy()
+			|| ( is_woocommerce() && ! is_cart() && ! is_checkout() && ! is_account_page() );
 
 		if ( ! $show ) {
 			return;
@@ -107,6 +95,21 @@ class Main {
 			array(),
 			QTFW_VERSION
 		);
+	}
+
+	/**
+	 * Whether any storefront feature that uses style.css is enabled.
+	 *
+	 * @return bool
+	 */
+	private function is_any_storefront_feature_enabled() {
+		foreach ( array( 'frontend_total_sold_loop', 'frontend_total_sold_single', 'recently_sold', 'only_left', 'best_seller', 'sale_countdown' ) as $key ) {
+			if ( $this->settings->is_enabled( $key ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -159,6 +162,10 @@ class Main {
 			}
 		}
 
+		if ( $this->settings->is_enabled( 'low_stock_email' ) ) {
+			require_once QTFW_PLUGIN_DIR . 'includes/classes/low-stock-email.php';
+		}
+
 		if ( $this->settings->is_frontend_total_sold_enabled() ) {
 			require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
 		}
@@ -190,6 +197,10 @@ class Main {
 			if ( $this->settings->is_enabled( 'previous_orders' ) ) {
 				new \QTFW\Includes\Admin\Classes\Columns\PreviousOrdersColumn();
 			}
+		}
+
+		if ( $this->settings->is_enabled( 'low_stock_email' ) ) {
+			new \QTFW\Includes\Classes\Low_Stock_Email();
 		}
 
 		if ( $this->settings->is_frontend_total_sold_enabled() ) {

@@ -72,6 +72,7 @@ class Settings {
 			'stock_qty'                  => 1,
 			'recently_sold'              => 1,
 			'only_left'                  => 1,
+			'low_stock_email'            => 1,
 		);
 	}
 
@@ -116,6 +117,11 @@ class Settings {
 				'title'       => __( 'Only X Left badge (Storefront)', 'quicktools-for-woocommerce' ),
 				'description' => __( 'Show an "Only 3 left in stock" urgency badge on shop loops and single product pages when stock runs low.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
+			),
+			'low_stock_email'            => array(
+				'title'       => __( 'Low Stock email alert', 'quicktools-for-woocommerce' ),
+				'description' => __( 'Email the store admin once when a product stock falls to its low-stock threshold or below.', 'quicktools-for-woocommerce' ),
+				'area'        => __( 'Admin', 'quicktools-for-woocommerce' ),
 			),
 		);
 	}
