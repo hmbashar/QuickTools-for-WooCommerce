@@ -116,7 +116,7 @@ class Main {
 		$screen_id = ( $screen && isset( $screen->id ) ) ? (string) $screen->id : '';
 
 		$is_products = ( 'edit-product' === $screen_id )
-			&& $this->settings->is_enabled( 'admin_total_sold' );
+			&& ( $this->settings->is_enabled( 'admin_total_sold' ) || $this->settings->is_enabled( 'stock_level' ) );
 
 		$is_orders = $this->settings->is_enabled( 'previous_orders' ) && (
 			'edit-shop_order' === $screen_id
@@ -147,6 +147,10 @@ class Main {
 				require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/total-sold.php';
 			}
 
+			if ( $this->settings->is_enabled( 'stock_level' ) ) {
+				require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/stock-level.php';
+			}
+
 			if ( $this->settings->is_enabled( 'previous_orders' ) ) {
 				require_once QTFW_PLUGIN_DIR . 'includes/admin/classes/columns/PreviousOrdersColumn.php';
 			}
@@ -166,6 +170,10 @@ class Main {
 
 			if ( $this->settings->is_enabled( 'admin_total_sold' ) ) {
 				new \QTFW\Includes\Admin\Classes\Total_Sold();
+			}
+
+			if ( $this->settings->is_enabled( 'stock_level' ) ) {
+				new \QTFW\Includes\Admin\Classes\Stock_Level();
 			}
 
 			if ( $this->settings->is_enabled( 'previous_orders' ) ) {

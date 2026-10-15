@@ -4,7 +4,7 @@ Tags: total sold, ecommerce, woocommerce, orders, product sales
 Requires at least: 5.0
 Requires PHP: 7.4
 Tested up to: 7.1.3
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,6 +18,7 @@ QuickTools for WooCommerce enhances your WooCommerce admin and storefront with l
 
 * **Control Center:** Modern admin panel to toggle every feature on or off.
 * **Sold column (Products):** Sortable units-sold badge column on the Products list.
+* **Stock Level column (Products):** Sortable color-coded stock badge (in stock, low, out of stock) on the Products list.
 * **Total Sold (Storefront):** Premium Total Sold UI on shop/archive loops and single product pages (separately toggleable).
 * **Previous Orders column (Orders):** Previous-order status badges matched by billing phone (with/without country code). Works with classic orders and HPOS.
 * **Performance-minded:** Disabled features are not loaded; CSS/JS enqueue only on relevant screens.
@@ -54,6 +55,8 @@ Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/Qu
 
 == Changelog ==
 
+= 1.2.0 =
+* Added Stock Level column with color-coded, sortable badges on the Products list (toggleable in the Control Center).
 
 = 1.1.0 =
 * Added QuickTools Control Center (WooCommerce → QuickTools) with per-feature enable/disable toggles.
