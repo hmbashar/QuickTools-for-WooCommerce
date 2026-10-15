@@ -72,7 +72,7 @@ class Main {
 	 * Enqueue frontend CSS only on relevant product views when enabled.
 	 */
 	public function enqueue_public_assets() {
-		if ( ! $this->settings->is_frontend_total_sold_enabled() ) {
+		if ( ! $this->settings->is_frontend_total_sold_enabled() && ! $this->settings->is_enabled( 'recently_sold' ) ) {
 			return;
 		}
 
@@ -82,13 +82,16 @@ class Main {
 
 		$show = false;
 
-		if ( $this->settings->is_enabled( 'frontend_total_sold_single' ) && is_product() ) {
+		$single_on = $this->settings->is_enabled( 'frontend_total_sold_single' ) || $this->settings->is_enabled( 'recently_sold' );
+		$loop_on   = $this->settings->is_enabled( 'frontend_total_sold_loop' ) || $this->settings->is_enabled( 'recently_sold' );
+
+		if ( $single_on && is_product() ) {
 			$show = true;
 		}
 
 		if (
 			! $show
-			&& $this->settings->is_enabled( 'frontend_total_sold_loop' )
+			&& $loop_on
 			&& ( is_shop() || is_product_taxonomy() || ( is_woocommerce() && ! is_product() && ! is_cart() && ! is_checkout() && ! is_account_page() ) )
 		) {
 			$show = true;
@@ -159,6 +162,10 @@ class Main {
 		if ( $this->settings->is_frontend_total_sold_enabled() ) {
 			require_once QTFW_PLUGIN_DIR . 'includes/classes/total-sold.php';
 		}
+
+		if ( $this->settings->is_enabled( 'recently_sold' ) ) {
+			require_once QTFW_PLUGIN_DIR . 'includes/classes/recently-sold.php';
+		}
 	}
 
 	/**
@@ -186,6 +193,10 @@ class Main {
 				$this->settings->is_enabled( 'frontend_total_sold_loop' ),
 				$this->settings->is_enabled( 'frontend_total_sold_single' )
 			);
+		}
+
+		if ( $this->settings->is_enabled( 'recently_sold' ) ) {
+			new \QTFW\Includes\Classes\Recently_Sold();
 		}
 	}
 }

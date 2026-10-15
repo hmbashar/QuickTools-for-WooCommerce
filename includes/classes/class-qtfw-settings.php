@@ -69,7 +69,8 @@ class Settings {
 			'frontend_total_sold_loop'   => 1,
 			'frontend_total_sold_single' => 1,
 			'previous_orders'            => 1,
-			'stock_qty'                => 1,
+			'stock_qty'                  => 1,
+			'recently_sold'              => 1,
 		);
 	}
 
@@ -104,6 +105,11 @@ class Settings {
 				'title'       => __( 'Stock Qty column (Products)', 'quicktools-for-woocommerce' ),
 				'description' => __( 'Show a sortable, color-coded stock quantity (low and out-of-stock highlighted) on the products list.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Admin', 'quicktools-for-woocommerce' ),
+			),
+			'recently_sold'              => array(
+				'title'       => __( 'Recently Sold label (Storefront)', 'quicktools-for-woocommerce' ),
+				'description' => __( 'Show "12 sold in the last 24 hours" on shop loops and single product pages. Hidden when nothing sold recently.', 'quicktools-for-woocommerce' ),
+				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
 			),
 		);
 	}

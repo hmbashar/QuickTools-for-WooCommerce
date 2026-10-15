@@ -189,3 +189,37 @@
 		transform: none;
 	}
 }
+
+/* Recently sold — storefront */
+.qtfw-recently-sold {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin: 0.4rem 0 0;
+	padding: 0.25rem 0.65rem;
+	border-radius: 999px;
+	background: rgba(194, 65, 12, 0.08);
+	color: #9a3412;
+	font-size: 0.82em;
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.qtfw-recently-sold__dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: #ea580c;
+	animation: qtfw-recently-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes qtfw-recently-pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.qtfw-recently-sold__dot {
+		animation: none;
+	}
+}

@@ -4,7 +4,7 @@ Tags: total sold, ecommerce, woocommerce, orders, product sales
 Requires at least: 5.0
 Requires PHP: 7.4
 Tested up to: 7.1.3
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,6 +20,7 @@ QuickTools for WooCommerce enhances your WooCommerce admin and storefront with l
 * **Sold column (Products):** Sortable units-sold badge column on the Products list.
 * **Stock Qty column (Products):** Sortable color-coded stock quantity badge on the Products list.
 * **Total Sold (Storefront):** Premium Total Sold UI on shop/archive loops and single product pages (separately toggleable).
+* **Recently Sold label (Storefront):** "12 sold in the last 24 hours" label on shop loops and single product pages, cached for performance.
 * **Previous Orders column (Orders):** Previous-order status badges matched by billing phone (with/without country code). Works with classic orders and HPOS.
 * **Performance-minded:** Disabled features are not loaded; CSS/JS enqueue only on relevant screens.
 
@@ -54,6 +55,9 @@ Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/Qu
 4. Sold column badges with tooltips on the products list.
 
 == Changelog ==
+
+= 1.3.0 =
+* Added Recently Sold storefront label (units sold in the last 24 hours) with its own Control Center toggle.
 
 = 1.2.0 =
 * Added Stock Qty column showing color-coded, sortable stock quantity badges on the Products list (toggleable in the Control Center).
