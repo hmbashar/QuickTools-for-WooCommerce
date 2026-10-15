@@ -75,6 +75,7 @@ class Settings {
 			'low_stock_email'            => 1,
 			'best_seller'                => 1,
 			'sale_countdown'             => 1,
+			'quick_copy'                 => 1,
 		);
 	}
 
@@ -134,6 +135,11 @@ class Settings {
 				'title'       => __( 'Sale Countdown (Storefront)', 'quicktools-for-woocommerce' ),
 				'description' => __( 'Show a live countdown on products whose scheduled sale ends within 7 days.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
+			),
+			'quick_copy'                 => array(
+				'title'       => __( 'Quick ID / SKU copy (Products)', 'quicktools-for-woocommerce' ),
+				'description' => __( 'Add one-click "Copy ID" and "Copy SKU" actions to each row on the products list.', 'quicktools-for-woocommerce' ),
+				'area'        => __( 'Admin', 'quicktools-for-woocommerce' ),
 			),
 		);
 	}

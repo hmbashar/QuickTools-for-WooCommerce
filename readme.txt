@@ -4,7 +4,7 @@ Tags: total sold, ecommerce, woocommerce, orders, product sales
 Requires at least: 5.0
 Requires PHP: 7.4
 Tested up to: 7.1.3
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,7 @@ QuickTools for WooCommerce enhances your WooCommerce admin and storefront with l
 * **Low Stock email alert:** Emails the store admin once when a product reaches its low-stock threshold.
 * **Best Seller badge (Storefront):** Badge on the top-selling products (count filterable via `qtfw_best_seller_count`).
 * **Sale Countdown (Storefront):** Live countdown when a scheduled sale is about to end (window filterable via `qtfw_sale_countdown_window`).
+* **Quick ID / SKU copy (Products):** One-click Copy ID and Copy SKU row actions on the Products list.
 * **Previous Orders column (Orders):** Previous-order status badges matched by billing phone (with/without country code). Works with classic orders and HPOS.
 * **Performance-minded:** Disabled features are not loaded; CSS/JS enqueue only on relevant screens.
 
@@ -59,6 +60,9 @@ Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/Qu
 4. Sold column badges with tooltips on the products list.
 
 == Changelog ==
+
+= 1.8.0 =
+* Added Quick ID/SKU copy row actions on the Products list, with its own Control Center toggle.
 
 = 1.7.0 =
 * Added Sale Countdown for scheduled sales ending within 7 days, with its own Control Center toggle.
