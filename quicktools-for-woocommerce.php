@@ -3,7 +3,7 @@
  * Plugin Name: QuickTools for WooCommerce
  * Plugin URI:  https://github.com/hmbashar/QuickTools-for-WooCommerce
  * Description: Premium WooCommerce toolkit with Total Sold insights and Previous Orders badges — each feature can be enabled or disabled from the Control Center.
- * Version:     1.3.0
+ * Version:     1.4.0
  * Author:      Md Abul Bashar
  * Author URI:  https://github.com/hmbashar
  * Text Domain: quicktools-for-woocommerce
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'QTFW_VERSION', '1.3.0' );
+define( 'QTFW_VERSION', '1.4.0' );
 define( 'QTFW_PLUGIN_FILE', __FILE__ );
 define( 'QTFW_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'QTFW_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

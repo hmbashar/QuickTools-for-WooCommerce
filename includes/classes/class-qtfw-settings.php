@@ -71,6 +71,7 @@ class Settings {
 			'previous_orders'            => 1,
 			'stock_qty'                  => 1,
 			'recently_sold'              => 1,
+			'only_left'                  => 1,
 		);
 	}
 
@@ -109,6 +110,11 @@ class Settings {
 			'recently_sold'              => array(
 				'title'       => __( 'Recently Sold label (Storefront)', 'quicktools-for-woocommerce' ),
 				'description' => __( 'Show "12 sold in the last 24 hours" on shop loops and single product pages. Hidden when nothing sold recently.', 'quicktools-for-woocommerce' ),
+				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
+			),
+			'only_left'                  => array(
+				'title'       => __( 'Only X Left badge (Storefront)', 'quicktools-for-woocommerce' ),
+				'description' => __( 'Show an "Only 3 left in stock" urgency badge on shop loops and single product pages when stock runs low.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
 			),
 		);

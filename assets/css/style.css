@@ -223,3 +223,16 @@
 		animation: none;
 	}
 }
+
+/* Only X left — storefront */
+.qtfw-only-left {
+	display: inline-block;
+	margin: 0.4rem 0 0;
+	padding: 0.25rem 0.65rem;
+	border-radius: 999px;
+	background: rgba(185, 28, 28, 0.08);
+	color: #b91c1c;
+	font-size: 0.82em;
+	font-weight: 700;
+	line-height: 1.3;
+}
