@@ -1,0 +1,53 @@
+name: Scheduled Release
+
+# Publishes the 1.2.0 release (and deploys to WordPress.org) on 2026-10-20.
+# GITHUB_TOKEN-created releases do not trigger other workflows, so the deploy
+# workflow is called directly instead of relying on the "release published" event.
+
+on:
+  schedule:
+    - cron: '0 6 20 10 *' # 06:00 UTC on 20 October each year; guarded to 2026 below.
+  workflow_dispatch:
+
+env:
+  RELEASE_TAG: '1.2.0'
+  RELEASE_DATE: '2026-10-20'
+
+jobs:
+  release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      should_deploy: ${{ steps.release.outputs.should_deploy }}
+    steps:
+      - name: Create release if due
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%F)" != "$RELEASE_DATE" ]; then
+            echo "Not the release date; skipping."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; skipping."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "$RELEASE_TAG" --generate-notes
+          echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy to WordPress.org
+    needs: release
+    if: needs.release.outputs.should_deploy == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/deploy-on-pushing-plugin.yml
+    with:
+      tag: '1.2.0'
+    secrets: inherit
