@@ -74,6 +74,7 @@ class Settings {
 			'only_left'                  => 1,
 			'low_stock_email'            => 1,
 			'best_seller'                => 1,
+			'sale_countdown'             => 1,
 		);
 	}
 
@@ -127,6 +128,11 @@ class Settings {
 			'best_seller'                => array(
 				'title'       => __( 'Best Seller badge (Storefront)', 'quicktools-for-woocommerce' ),
 				'description' => __( 'Mark the top-selling products with a Best Seller badge on shop loops and single product pages.', 'quicktools-for-woocommerce' ),
+				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
+			),
+			'sale_countdown'             => array(
+				'title'       => __( 'Sale Countdown (Storefront)', 'quicktools-for-woocommerce' ),
+				'description' => __( 'Show a live countdown on products whose scheduled sale ends within 7 days.', 'quicktools-for-woocommerce' ),
 				'area'        => __( 'Storefront', 'quicktools-for-woocommerce' ),
 			),
 		);

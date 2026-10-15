@@ -251,3 +251,24 @@
 	letter-spacing: 0.02em;
 	line-height: 1.3;
 }
+
+/* Sale countdown — storefront */
+.qtfw-countdown {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0.4rem 0 0;
+	padding: 0.25rem 0.7rem;
+	border-radius: 999px;
+	background: rgba(185, 28, 28, 0.08);
+	color: #b91c1c;
+	font-size: 0.82em;
+	font-weight: 700;
+	line-height: 1.3;
+	font-variant-numeric: tabular-nums;
+}
+
+.qtfw-countdown.is-ended {
+	background: rgba(120, 113, 108, 0.12);
+	color: #78716c;
+}

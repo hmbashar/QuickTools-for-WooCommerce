@@ -181,6 +181,10 @@ class Main {
 		if ( $this->settings->is_enabled( 'best_seller' ) ) {
 			require_once QTFW_PLUGIN_DIR . 'includes/classes/best-seller.php';
 		}
+
+		if ( $this->settings->is_enabled( 'sale_countdown' ) ) {
+			require_once QTFW_PLUGIN_DIR . 'includes/classes/sale-countdown.php';
+		}
 	}
 
 	/**
@@ -224,6 +228,10 @@ class Main {
 
 		if ( $this->settings->is_enabled( 'best_seller' ) ) {
 			new \QTFW\Includes\Classes\Best_Seller();
+		}
+
+		if ( $this->settings->is_enabled( 'sale_countdown' ) ) {
+			new \QTFW\Includes\Classes\Sale_Countdown();
 		}
 	}
 }
