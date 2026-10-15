@@ -1,17 +1,20 @@
 name: Scheduled Release
 
-# Publishes the 1.2.0 release (and deploys to WordPress.org) on 2026-10-20.
+# Publishes scheduled releases and deploys them to WordPress.org:
+#   2026-10-20 -> 1.2.0
+#   2026-10-30 -> 1.3.0
 # GITHUB_TOKEN-created releases do not trigger other workflows, so the deploy
 # workflow is called directly instead of relying on the "release published" event.
 
 on:
   schedule:
-    - cron: '0 6 20 10 *' # 06:00 UTC on 20 October each year; guarded to 2026 below.
+    - cron: '0 6 20,30 10 *' # 06:00 UTC on 20 and 30 October; guarded by the date map below.
   workflow_dispatch:
-
-env:
-  RELEASE_TAG: '1.2.0'
-  RELEASE_DATE: '2026-10-20'
+    inputs:
+      tag:
+        description: Existing tag to release now (e.g. 1.3.0)
+        required: true
+        type: string
 
 jobs:
   release:
@@ -20,25 +23,37 @@ jobs:
     permissions:
       contents: write
     outputs:
+      tag: ${{ steps.release.outputs.tag }}
       should_deploy: ${{ steps.release.outputs.should_deploy }}
     steps:
       - name: Create release if due
         id: release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%F)" != "$RELEASE_DATE" ]; then
-            echo "Not the release date; skipping."
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="$INPUT_TAG"
+          else
+            case "$(date -u +%F)" in
+              2026-10-20) TAG="1.2.0" ;;
+              2026-10-30) TAG="1.3.0" ;;
+              *) TAG="" ;;
+            esac
+          fi
+          if [ -z "$TAG" ]; then
+            echo "No release scheduled for today; skipping."
             echo "should_deploy=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "Release $RELEASE_TAG already exists; skipping."
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; skipping."
             echo "should_deploy=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
-            --title "$RELEASE_TAG" --generate-notes
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "$TAG" --generate-notes
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "should_deploy=true" >> "$GITHUB_OUTPUT"
 
   deploy:
@@ -49,5 +64,5 @@ jobs:
       contents: write
     uses: ./.github/workflows/deploy-on-pushing-plugin.yml
     with:
-      tag: '1.2.0'
+      tag: ${{ needs.release.outputs.tag }}
     secrets: inherit
