@@ -4,7 +4,7 @@ Tags: total sold, ecommerce, woocommerce, orders, product sales
 Requires at least: 5.0
 Requires PHP: 7.4
 Tested up to: 7.1.3
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -61,6 +61,11 @@ Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/Qu
 
 == Changelog ==
 
+= 1.9.0 =
+* Fixed readme/asset deploy workflow to trigger on the correct branch (main instead of trunk).
+* Updated Author URI to personal website (hmbashar.com).
+* Updated WC tested up to: 11.2.1.
+
 = 1.8.0 =
 * Added Quick ID/SKU copy row actions on the Products list, with its own Control Center toggle.
 
@@ -95,6 +100,9 @@ Open an issue on the plugin's [GitHub repository](https://github.com/hmbashar/Qu
 * Security and performance hardening: capability checks, escaped output, request-level query cache, conditional asset loading.
 
 == Upgrade Notice ==
+
+= 1.9.0 =
+Maintenance release: fixes the readme/asset WordPress.org deploy workflow and updates compatibility headers to WooCommerce 11.2.1.
 
 = 1.1.0 =
 Adds a Control Center to enable/disable each feature securely.

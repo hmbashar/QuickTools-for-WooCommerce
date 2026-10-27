@@ -3,7 +3,7 @@ name: Plugin asset and readme update
 on:
   push:
     branches:
-      - trunk
+      - main
 
 jobs:
   update-assets-and-readme:
